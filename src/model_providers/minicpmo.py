@@ -1,23 +1,20 @@
-"""Buffered MiniCPM-o provider for the original FD-BADCAT MLLM contract."""
+"""Buffered and native-streaming MiniCPM-o provider for FD-BADCAT."""
 
 from __future__ import annotations
 
 import base64
 import io
-from collections.abc import Mapping
-from threading import Lock
+from collections.abc import Callable, Iterator, Mapping
+from threading import Event, Lock
 from typing import Any
+from uuid import uuid4
 
 import numpy as np
 import soundfile as sf
 
 
 class MiniCPMProvider:
-    """Translate upstream OpenAI-style messages into MiniCPM chat calls.
-
-    One complete string is returned deliberately. Native MiniCPM text
-    streaming belongs on a separate optimization branch, not this baseline.
-    """
+    """Translate FD-BADCAT messages into buffered or streaming MiniCPM calls."""
 
     provider_name = "minicpmo_local"
 
@@ -27,13 +24,22 @@ class MiniCPMProvider:
         tokenizer: Any | None = None,
         *,
         chat_kwargs: Mapping[str, Any] | None = None,
+        stream_kwargs: Mapping[str, Any] | None = None,
     ) -> None:
         if model is None:
             raise ValueError("MiniCPM model không được để trống")
         self.model = model
         self.tokenizer = tokenizer
         self.chat_kwargs = dict(chat_kwargs or {})
+        self.stream_kwargs = dict(stream_kwargs or {})
         self._inference_lock = Lock()
+
+    @property
+    def native_streaming(self) -> bool:
+        return (
+            callable(getattr(self.model, "streaming_prefill", None))
+            and callable(getattr(self.model, "streaming_generate", None))
+        )
 
     @staticmethod
     def _decode_audio_data_uri(value: str) -> np.ndarray:
@@ -140,7 +146,11 @@ class MiniCPMProvider:
             "enable_thinking": False,
         }
         kwargs.update(self.chat_kwargs)
-        tokenizer = self.tokenizer or getattr(self.model, "tokenizer", None)
+        tokenizer = (
+            self.tokenizer
+            if self.tokenizer is not None
+            else getattr(self.model, "tokenizer", None)
+        )
         if tokenizer is not None:
             kwargs["tokenizer"] = tokenizer
 
@@ -152,3 +162,208 @@ class MiniCPMProvider:
         if not text:
             raise RuntimeError("MiniCPM-o không sinh ra text")
         return text
+
+
+    def stream_generate(
+        self,
+        messages: list[dict[str, Any]],
+    ) -> Iterator[str]:
+        """Yield MiniCPM text deltas after chunked audio prefill."""
+
+        if not self.native_streaming:
+            return iter((self.generate(messages),))
+        return _MiniCPMTextStream(self, self._convert_messages(messages))
+
+    def _prefill_stream(
+        self,
+        messages: list[dict[str, Any]],
+        session_id: str,
+        cancelled: Callable[[], bool],
+    ) -> None:
+        tokenizer = (
+            self.tokenizer
+            if self.tokenizer is not None
+            else getattr(self.model, "tokenizer", None)
+        )
+        base_kwargs: dict[str, Any] = {
+            "session_id": session_id,
+            "omni_mode": False,
+            "use_tts_template": True,
+            "enable_thinking": False,
+        }
+        if tokenizer is not None:
+            base_kwargs["tokenizer"] = tokenizer
+
+        for message in messages:
+            content = message["content"]
+            if isinstance(content, str):
+                content = [content]
+            audio_indices = [
+                index
+                for index, part in enumerate(content)
+                if isinstance(part, np.ndarray)
+            ]
+            if len(audio_indices) > 1:
+                raise ValueError(
+                    "Mỗi MiniCPM message chỉ hỗ trợ một audio block"
+                )
+            if not audio_indices:
+                if cancelled():
+                    raise RuntimeError("MiniCPM prefill đã bị hủy")
+                self.model.streaming_prefill(
+                    msgs=[{
+                        "role": message["role"],
+                        "content": content,
+                    }],
+                    is_last_chunk=True,
+                    **base_kwargs,
+                )
+                continue
+
+            audio_index = audio_indices[0]
+            if audio_index != len(content) - 1:
+                raise ValueError(
+                    "Text sau audio chưa được hỗ trợ trong streaming prefill"
+                )
+            waveform = content[audio_index]
+            chunk_size = 16_000
+            total_chunks = (waveform.size + chunk_size - 1) // chunk_size
+            for index in range(total_chunks):
+                if cancelled():
+                    raise RuntimeError("MiniCPM prefill đã bị hủy")
+                start = index * chunk_size
+                chunk = waveform[start:start + chunk_size]
+                last = index == total_chunks - 1
+                if last and chunk.size < chunk_size:
+                    chunk = np.pad(
+                        chunk,
+                        (0, chunk_size - chunk.size),
+                    )
+                chunk_content = (
+                    [*content[:audio_index], chunk]
+                    if index == 0
+                    else [chunk]
+                )
+                self.model.streaming_prefill(
+                    msgs=[{
+                        "role": message["role"],
+                        "content": chunk_content,
+                    }],
+                    is_last_chunk=last,
+                    **base_kwargs,
+                )
+
+
+class _MiniCPMTextStream(Iterator[str]):
+    """Own one native MiniCPM session until completion or close."""
+
+    def __init__(
+        self,
+        provider: MiniCPMProvider,
+        messages: list[dict[str, Any]],
+    ) -> None:
+        self._provider = provider
+        self._messages = messages
+        self._closed = Event()
+        self._operation_lock = Lock()
+        self._session_id = f"fd-badcat-{uuid4().hex}"
+        self._native_stream: Iterator[tuple[str, bool]] | None = None
+        self._owns_inference_lock = False
+        self._finished = False
+
+    def __iter__(self) -> "_MiniCPMTextStream":
+        return self
+
+    def _cancelled(self) -> bool:
+        return self._closed.is_set()
+
+    def _start(self) -> None:
+        while not self._provider._inference_lock.acquire(timeout=0.05):
+            if self._cancelled():
+                raise RuntimeError("MiniCPM stream đã bị hủy")
+        self._owns_inference_lock = True
+        if self._cancelled():
+            raise RuntimeError("MiniCPM stream đã bị hủy")
+
+        self._provider._prefill_stream(
+            self._messages,
+            self._session_id,
+            self._cancelled,
+        )
+        tokenizer = (
+            self._provider.tokenizer
+            if self._provider.tokenizer is not None
+            else getattr(self._provider.model, "tokenizer", None)
+        )
+        kwargs: dict[str, Any] = {
+            "session_id": self._session_id,
+            "generate_audio": False,
+            "use_tts_template": True,
+            "enable_thinking": False,
+            "do_sample": False,
+            "max_new_tokens": 128,
+        }
+        kwargs.update(self._provider.stream_kwargs)
+        if tokenizer is not None:
+            kwargs["tokenizer"] = tokenizer
+        self._native_stream = iter(
+            self._provider.model.streaming_generate(**kwargs)
+        )
+
+    def _finish(self) -> None:
+        if self._finished:
+            return
+        self._finished = True
+        try:
+            if self._native_stream is not None:
+                close = getattr(self._native_stream, "close", None)
+                if callable(close):
+                    close()
+        finally:
+            if self._owns_inference_lock:
+                try:
+                    reset = getattr(
+                        self._provider.model,
+                        "reset_session",
+                        None,
+                    )
+                    if callable(reset):
+                        reset(reset_token2wav_cache=False)
+                finally:
+                    self._owns_inference_lock = False
+                    self._provider._inference_lock.release()
+
+    def __next__(self) -> str:
+        with self._operation_lock:
+            if self._finished:
+                raise StopIteration
+            try:
+                if self._cancelled():
+                    raise RuntimeError("MiniCPM stream đã bị hủy")
+                if self._native_stream is None:
+                    self._start()
+                assert self._native_stream is not None
+                while True:
+                    delta, is_finished = next(self._native_stream)
+                    if self._cancelled():
+                        raise RuntimeError("MiniCPM stream đã bị hủy")
+                    if not isinstance(delta, str):
+                        raise TypeError(
+                            "MiniCPM streaming_generate phải trả text chunk"
+                        )
+                    if is_finished and not delta:
+                        self._finish()
+                        raise StopIteration
+                    if delta:
+                        return delta
+            except StopIteration:
+                self._finish()
+                raise
+            except BaseException:
+                self._finish()
+                raise
+
+    def close(self) -> None:
+        self._closed.set()
+        with self._operation_lock:
+            self._finish()

@@ -51,16 +51,36 @@ class SpeakerSimulator:
         self.output_path = output_path
         self.audio_buffer = np.zeros(self.total_samples, dtype=np.float32)
         self.start_wall = None
+        self.playback_cursor = 0
         self.interrupted = False
         self.log(f"default buffer, with {total_duration:.2f}s（{self.total_samples} samples）")
+
+    def _ensure_capacity(self, required_samples: int):
+        if required_samples <= len(self.audio_buffer):
+            return
+        self.audio_buffer = np.pad(
+            self.audio_buffer,
+            (0, required_samples - len(self.audio_buffer)),
+        )
+
+    def write_pcm_chunk(self, pcm_bytes: bytes, receive_time: float):
+        if len(pcm_bytes) % 2:
+            raise ValueError("PCM16 chunk có số byte lẻ")
+        samples = np.frombuffer(pcm_bytes, dtype="<i2").astype(np.float32)
+        samples /= 32768.0
+        start_sample = max(int(receive_time * self.sr), self.playback_cursor)
+        end_sample = start_sample + len(samples)
+        self._ensure_capacity(end_sample)
+        self.audio_buffer[start_sample:end_sample] = samples
+        self.playback_cursor = end_sample
 
     def reset_for_new_audio(self, wav_bytes: bytes, start_time: float):
         data, sr = sf.read(io.BytesIO(wav_bytes), dtype="float32")
         assert sr == self.sr, f"sample wrong: {sr} != {self.sr}"
 
         start_sample = int(start_time * self.sr)
-        available = self.total_samples - start_sample
-        write_samples = min(len(data), max(0, available))
+        self._ensure_capacity(start_sample + len(data))
+        write_samples = len(data)
 
         if write_samples > 0:
             self.audio_buffer[start_sample:start_sample + write_samples] = data[:write_samples]
@@ -98,7 +118,6 @@ async def mic_sender(ws, wav_path: Path, *, log=print):
         await ws.send(chunk.tobytes())
         await asyncio.sleep(frame_time)
 
-    await ws.send(json.dumps({"event": "end"}))
     log(f"client ok and audio length: {time.perf_counter() - t0:.2f}s")
 
 
@@ -114,10 +133,13 @@ async def simulate_full_frontend(wav_path: Path, output_path: Path, *, log=print
                      "exp": exp }
         }))
         speaker = SpeakerSimulator(total_duration, sr=sr, output_path=output_path, log=log)
+        speaker.start_wall = time.perf_counter()
         last_tts_timestamp = None
+        pcm_stream_active = False
+        response_done = asyncio.Event()
 
         async def receiver():
-            nonlocal last_tts_timestamp
+            nonlocal last_tts_timestamp, pcm_stream_active
             while True:
                 try:
                     msg = await ws.recv()
@@ -126,6 +148,10 @@ async def simulate_full_frontend(wav_path: Path, output_path: Path, *, log=print
                     break
 
                 if isinstance(msg, bytes):
+                    if pcm_stream_active:
+                        elapsed = time.perf_counter() - speaker.start_wall
+                        speaker.write_pcm_chunk(msg, elapsed)
+                        continue
                     if last_tts_timestamp is None:
                         log("receive tts bug no timestamp, wright file wrong")
                         continue
@@ -144,8 +170,19 @@ async def simulate_full_frontend(wav_path: Path, output_path: Path, *, log=print
                     last_tts_timestamp = obj.get("data", {}).get("timestamp")
                     log(f"tts_done: {obj}")
                     log(f"tts_done, timestamp={last_tts_timestamp}s")
+                elif event == "tts_stream_start":
+                    pcm_stream_active = True
+                    log(f"tts_stream_start: {obj}")
+                elif event == "tts_stream_end":
+                    pcm_stream_active = False
+                    response_done.set()
+                    log(f"tts_stream_end: {obj}")
                 elif event == "stop_audio":
+                    pcm_stream_active = False
                     speaker.handle_interrupt()
+                elif event == "generation_error":
+                    response_done.set()
+                    log(f"generation_error: {obj}")
                 else:
                     log(f"info: {obj}")
 
@@ -155,6 +192,8 @@ async def simulate_full_frontend(wav_path: Path, output_path: Path, *, log=print
         recv_task = asyncio.create_task(receiver())
 
         await send_task
+        await asyncio.wait_for(response_done.wait(), timeout=180)
+        await ws.send(json.dumps({"event": "end"}))
         await ws.close()
         await recv_task
 

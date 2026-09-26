@@ -1,12 +1,14 @@
-"""Model compatibility facade for the unmodified FD-BADCAT backend.
+"""Model compatibility facade for the FD-BADCAT controller.
 
-The upstream controller imports exactly three functions from this module:
-``asr``, ``llm_qwen3o`` and ``tts``. Their signatures stay unchanged while
-the concrete model implementations are configured by the Kaggle bootstrap.
+The original ``asr``, ``llm_qwen3o`` and ``tts`` signatures stay unchanged.
+The streaming experiment adds ``llm_qwen3o_stream`` and ``tts_stream`` while
+the concrete model implementations remain configured by the Kaggle
+bootstrap.
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -44,10 +46,24 @@ def llm_qwen3o(messages: list[dict[str, Any]]) -> str:
     return str(get_runtime().mllm.generate(messages)).strip()
 
 
+def llm_qwen3o_stream(
+    messages: list[dict[str, Any]],
+) -> Iterator[str]:
+    """Yield native MLLM text deltas for the streaming experiment."""
+
+    return get_runtime().mllm.stream_generate(messages)
+
+
 def tts(text: str, path: str | Path) -> str:
     """Preserve FD-BADCAT's ``tts(text, path) -> wav_path`` contract."""
 
     return str(get_runtime().tts.synthesize_to_file(text, path))
+
+
+def tts_stream(text: str) -> Iterator[bytes]:
+    """Yield raw little-endian mono PCM16 chunks at 16 kHz."""
+
+    return get_runtime().tts.stream_pcm(text)
 
 
 def model_status() -> dict[str, str]:

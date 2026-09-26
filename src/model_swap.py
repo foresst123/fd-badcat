@@ -24,6 +24,7 @@ def configure_model_swap(
     *,
     env: Mapping[str, str] | None = None,
     chat_kwargs: Mapping[str, Any] | None = None,
+    stream_kwargs: Mapping[str, Any] | None = None,
     load_asr: bool = True,
     check_tts: bool = True,
 ) -> ModelRuntime:
@@ -35,6 +36,7 @@ def configure_model_swap(
         minicpm,
         tokenizer,
         chat_kwargs=chat_kwargs,
+        stream_kwargs=stream_kwargs,
     )
     tts_provider = VieNeuProvider.from_env(active_env)
 
@@ -59,6 +61,7 @@ def create_model_swap_app(
     config_path: str | Path = "src/config.yaml",
     env: Mapping[str, str] | None = None,
     chat_kwargs: Mapping[str, Any] | None = None,
+    stream_kwargs: Mapping[str, Any] | None = None,
     load_asr: bool = True,
     check_tts: bool = True,
 ):
@@ -69,6 +72,7 @@ def create_model_swap_app(
         tokenizer,
         env=env,
         chat_kwargs=chat_kwargs,
+        stream_kwargs=stream_kwargs,
         load_asr=load_asr,
         check_tts=check_tts,
     )
