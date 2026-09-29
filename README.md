@@ -1,4 +1,77 @@
 # fd-badcat
+
+## A100 + Vi-FDB benchmark — full command sequence
+
+Use branch `a100-minicpm-vieneu-zipformer` for two A100 cards. MiniCPM is
+sharded across GPUs 0 and 1, Zipformer uses GPU 0, and VieNeu uses GPU 1.
+
+### 1. Checkout and install
+
+```bash
+git clone https://github.com/foresst123/fd-badcat.git
+cd fd-badcat
+git switch --track origin/a100-minicpm-vieneu-zipformer
+
+conda create -n fd-badcat-a100 python=3.10 -y
+conda activate fd-badcat-a100
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Install PyTorch/torchaudio matching the CUDA driver and install the CUDA build
+of `sherpa-onnx` if the default package is CPU-only.
+
+### 2. Configure both cards
+
+```bash
+cp .env.a100.example .env.a100
+set -a
+source .env.a100
+set +a
+nvidia-smi
+```
+
+The default mapping is `CUDA_VISIBLE_DEVICES=0,1`,
+`FDBBADCAT_ASR_GPU=0`, and `FDBBADCAT_TTS_GPU=1`.
+
+### 3. Start VieNeu on GPU 1
+
+In a separate terminal, start the VieNeu TTS service and keep port 19100:
+
+```bash
+cd /path/to/VieNeu-TTS
+CUDA_VISIBLE_DEVICES=1 \
+VIENEU_DEVICE=cuda \
+VIENEU_PORT=19100 \
+.venv/bin/python -m apps.openai_speech
+```
+
+Check it before starting fd-badcat:
+
+```bash
+curl http://127.0.0.1:19100/health
+```
+
+### 4. Start fd-badcat
+
+In another terminal:
+
+```bash
+cd /path/to/fd-badcat
+conda activate fd-badcat-a100
+set -a
+source .env.a100
+set +a
+python setup/a100_minicpm_server.py
+```
+
+Wait for `Starting fd-badcat on ws://0.0.0.0:18000/realtime`. Keep this
+process running while the benchmark harness connects to it.
+
+### 5. Run the benchmark
+
+Run the commands in the `Full-Duplex-Bench/vi_fdb_harness/README.md` section
+“Run fd-badcat on A100”. Start with one sample, then run the complete pilot.
 full duplex-spoken dialogue system
 
 > [Unit-Based Agent for Semi-Cascaded Full-Duplex Dialogue Systems](https://arxiv.org/abs/2601.20230) <br>
@@ -189,4 +262,3 @@ for d in exp/exp-1/HD-Track2/*; do echo "$(basename "$d"): $(find "$d" -maxdepth
 ```
 
 Verify if the number of files matches the input file count to validate correctness.
-
