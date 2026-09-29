@@ -1,0 +1,1008 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-09-29T00:00:00.000Z" agent="Codex" version="24.7.17" type="device" compressed="false">
+  <diagram name="01 - Tong quan va deployment">
+    <mxGraphModel dx="1920" dy="1080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="n2" value="&lt;div style=&quot;font-size:24px&quot;&gt;&lt;b&gt;FD-BADCAT Model Swap — kiến trúc đang chạy trên Kaggle&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:13px;color:#555555&quot;&gt;Active path: DUPLEX_MODE=vad_segment | decision continue/switch riêng | response text stream riêng | native as_duplex tắt&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1f4e78;strokeColor=#1f4e78;strokeWidth=1.5;fontSize=16;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;fontColor=#ffffff;spacingLeft=16;" vertex="1" parent="1">
+          <mxGeometry x="30" y="18" width="1860" height="62" as="geometry"/>
+        </mxCell>
+        <mxCell id="n3" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;1. Browser / thiết bị người dùng&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="35" y="105" width="370" height="875" as="geometry"/>
+        </mxCell>
+        <mxCell id="n4" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;2. FastAPI backend / ConversationEngine&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="430" y="105" width="790" height="875" as="geometry"/>
+        </mxCell>
+        <mxCell id="n5" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;3. Model adapters&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1245" y="105" width="310" height="875" as="geometry"/>
+        </mxCell>
+        <mxCell id="n6" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;4. Kaggle compute / sidecar&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="1580" y="105" width="305" height="875" as="geometry"/>
+        </mxCell>
+        <mxCell id="n7" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Microphone capture&lt;/b&gt;&lt;div&gt;48 kHz từ browser&lt;/div&gt;&lt;div&gt;resample → PCM16 mono 16 kHz&lt;/div&gt;&lt;div&gt;frame 256 samples = 16 ms&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="65" y="165" width="305" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n8" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;WebSocket /realtime&lt;/b&gt;&lt;div&gt;JSON control + binary audio&lt;/div&gt;&lt;div&gt;browser đợi vad_segment_ready rồi mới mở mic&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="65" y="320" width="305" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n9" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Web Audio playback&lt;/b&gt;&lt;div&gt;nhận PCM16 binary&lt;/div&gt;&lt;div&gt;buffer theo generation&lt;/div&gt;&lt;div&gt;stop_audio → xả buffer&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="65" y="625" width="305" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n10" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Playback ACK bất đồng bộ&lt;/b&gt;&lt;div&gt;scheduled / started / drained / stopped&lt;/div&gt;&lt;div&gt;phản ánh phát âm thực tế, không điều khiển state tùy ý&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="65" y="775" width="305" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n11" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Trace UI&lt;/b&gt;&lt;div&gt;state, turn, generation, flag&lt;/div&gt;&lt;div&gt;queue depth, VAD→decision, TTFA, cancel latency&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#70ad47;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="65" y="925" width="305" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="n12" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;FastAPI + WebSocket session&lt;/b&gt;&lt;div&gt;mỗi kết nối có state, turn, generation&lt;/div&gt;&lt;div&gt;trace JSONL riêng&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="470" y="145" width="315" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="n13" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Silero VAD&lt;/b&gt;&lt;div&gt;ghép 2 frame → 512 samples = 32 ms&lt;/div&gt;&lt;div&gt;LISTEN buffer / SPEAK interrupt_buf&lt;/div&gt;&lt;div&gt;endpoint grace = 640 ms&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="470" y="290" width="315" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n14" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;VAD Segment Controller&lt;/b&gt;&lt;div&gt;không chia Unit 1 giây&lt;/div&gt;&lt;div&gt;decision queue maxsize=1, latest wins&lt;/div&gt;&lt;div&gt;state snapshot + generation guard&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="470" y="455" width="315" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n15" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Response Orchestrator&lt;/b&gt;&lt;div&gt;MiniCPM text token/delta stream&lt;/div&gt;&lt;div&gt;HybridPhraseChunker&lt;/div&gt;&lt;div&gt;phrase queue maxsize=2&lt;/div&gt;&lt;div&gt;generation-aware cancellation&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="850" y="290" width="325" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="n16" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Priority cancellation&lt;/b&gt;&lt;div&gt;S2L / superseded / disconnect&lt;/div&gt;&lt;div&gt;close MLLM iterator + HTTP TTS&lt;/div&gt;&lt;div&gt;stop_audio tới browser&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="850" y="490" width="325" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n17" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Tracing&lt;/b&gt;&lt;div&gt;fd-badcat.trace.v1 JSONL&lt;/div&gt;&lt;div&gt;events có timestamp + turn + generation&lt;/div&gt;&lt;div&gt;không lưu raw audio/base64&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#70ad47;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="850" y="700" width="325" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n18" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Authoritative backend state&lt;/b&gt;&lt;div&gt;LISTEN / SPEAK&lt;/div&gt;&lt;div&gt;effective SPEAK nếu response hoặc playback còn active&lt;/div&gt;&lt;div&gt;ACK chỉ hiệu chỉnh playback thực tế&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="470" y="700" width="315" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n19" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Zipformer adapter&lt;/b&gt;&lt;div&gt;streaming session / VAD Segment&lt;/div&gt;&lt;div&gt;chunk_size=32; left_context=128&lt;/div&gt;&lt;div&gt;tail padding=660 ms&lt;/div&gt;&lt;div&gt;greedy search; 16 kHz&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1275" y="185" width="250" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n20" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;MiniCPM-o 4.5 adapter&lt;/b&gt;&lt;div&gt;decision: model.chat(audio + ASR N-1)&lt;/div&gt;&lt;div&gt;response: request stream riêng&lt;/div&gt;&lt;div&gt;inference lock + cooperative cancel&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1275" y="390" width="250" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n21" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;VieNeu adapter&lt;/b&gt;&lt;div&gt;HTTP chunked PCM16 mono 16 kHz&lt;/div&gt;&lt;div&gt;mỗi phrase = một HTTP request&lt;/div&gt;&lt;div&gt;Semaphore=1; không có WS/gRPC session&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1275" y="600" width="250" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n22" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;model_swap.py wiring&lt;/b&gt;&lt;div&gt;đọc env → tạo providers&lt;/div&gt;&lt;div&gt;load ASR; health/warm-up TTS&lt;/div&gt;&lt;div&gt;gắn model_status vào app.state&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1275" y="815" width="250" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="n23" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Physical GPU 0 — Tesla T4&lt;/b&gt;&lt;div&gt;14.56 GiB&lt;/div&gt;&lt;div&gt;Zipformer ASR cuda:0&lt;/div&gt;&lt;div&gt;MiniCPM layers 0–15&lt;/div&gt;&lt;div&gt;MiniCPM max_memory 13 GiB&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1608" y="185" width="250" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n24" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Physical GPU 1 — Tesla T4&lt;/b&gt;&lt;div&gt;14.56 GiB&lt;/div&gt;&lt;div&gt;VieNeu cuda:1&lt;/div&gt;&lt;div&gt;MiniCPM layers 16–35 + heads/audio&lt;/div&gt;&lt;div&gt;MiniCPM max_memory 10 GiB&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1608" y="390" width="250" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="n25" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;VieNeu sidecar :19100&lt;/b&gt;&lt;div&gt;health + voices + /v1/audio/speech&lt;/div&gt;&lt;div&gt;warm-up probe một lần khi notebook startup&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1608" y="620" width="250" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n26" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;FD backend :18000&lt;/b&gt;&lt;div&gt;Uvicorn + static browser UI&lt;/div&gt;&lt;div&gt;Cloudflare tunnel chỉ là transport public&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1608" y="815" width="250" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="e27" value="16 ms frames" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n7" target="n8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e28" value="binary audio" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#3d85c6;strokeWidth=2.2;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n8" target="n12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e29" value="audio stream" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n12" target="n13">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e30" value="VAD Segment" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n13" target="n14">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e31" value="persistent ASR stream" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#38761d;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n19">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e32" value="decision audio + ASR N-1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b45f06;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n20">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e33" value="L2S → start response" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#741b47;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e34" value="stream text" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b45f06;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n15" target="n20">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e35" value="hybrid phrases" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#e69138;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n15" target="n21">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e36" value="HTTP stream" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n21" target="n25">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e37" value="PCM chunks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#e69138;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n25" target="n15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e38" value="binary PCM" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#3d85c6;strokeWidth=2.2;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n15" target="n9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e39" value="playback lifecycle" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n9" target="n10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e40" value="async ACK" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#3d85c6;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n10" target="n18">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e41" value="S2L / new generation" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n16">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e42" value="invalidate generation" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n16" target="n15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e43" value="stop_audio" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n16" target="n9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e44" value="mọi event" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n12" target="n17">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e45" value="live log" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n17" target="n11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e46" value="construct/load" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n22" target="n19">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e47" value="wrap loaded model" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n22" target="n20">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e48" value="health/warm-up" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n22" target="n21">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e49" value="CUDA" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n19" target="n23">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e50" value="sharded" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n20" target="n23">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e51" value="sharded" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n20" target="n24">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e52" value="CUDA" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n21" target="n24">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e53" value="hosts" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n26" target="n12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="02 - LISTEN VAD Segment va fallback">
+    <mxGraphModel dx="1920" dy="1080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="n2" value="&lt;div style=&quot;font-size:24px&quot;&gt;&lt;b&gt;LISTEN — VAD Segment, streaming ASR, semantic decision và fallback 2.5 giây&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:13px;color:#555555&quot;&gt;Decision N dùng audio hiện tại N + transcript đã cache từ segment N-1; transcript N không được dùng ngược thời gian cho chính decision N&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1f4e78;strokeColor=#1f4e78;strokeWidth=1.5;fontSize=16;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;fontColor=#ffffff;spacingLeft=16;" vertex="1" parent="1">
+          <mxGeometry x="30" y="18" width="1860" height="62" as="geometry"/>
+        </mxCell>
+        <mxCell id="n3" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Audio frame&lt;/b&gt;&lt;div&gt;PCM16 16 kHz&lt;/div&gt;&lt;div&gt;256 samples = 16 ms&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="135" width="190" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="n4" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Frame accumulator&lt;/b&gt;&lt;div&gt;2 × 256 → 512 samples&lt;/div&gt;&lt;div&gt;Silero window = 32 ms&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="275" y="135" width="220" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="n5" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Silero VAD&lt;/b&gt;&lt;div&gt;speech probability&lt;/div&gt;&lt;div&gt;start / done events&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="540" y="135" width="205" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="n6" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;VAD start?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="790" y="125" width="145" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="n7" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Mở Segment N&lt;/b&gt;&lt;div&gt;capture state=LISTEN + turn&lt;/div&gt;&lt;div&gt;BUFFER=[]&lt;/div&gt;&lt;div&gt;open Zipformer stream một lần&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="995" y="115" width="255" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n8" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Trong khi người dùng nói&lt;/b&gt;&lt;div&gt;frame → BUFFER&lt;/div&gt;&lt;div&gt;frame → accept_waveform()&lt;/div&gt;&lt;div&gt;ASR partial được trace&lt;/div&gt;&lt;div&gt;không chờ decision từng 1 giây&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1305" y="105" width="280" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n9" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;VAD done?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="1640" y="125" width="145" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="n10" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Endpoint grace&lt;/b&gt;&lt;div&gt;đợi 640 ms&lt;/div&gt;&lt;div&gt;lọc khoảng ngừng ngắn&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="300" width="215" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="n11" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Có speech mới&lt;br&gt;trong 640 ms?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="295" width="180" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="n12" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Merge&lt;/b&gt;&lt;div&gt;tiếp tục cùng BUFFER&lt;/div&gt;&lt;div&gt;cùng ASR session&lt;/div&gt;&lt;div&gt;không tạo decision mới&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="865" y="300" width="220" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="n13" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Finalize Segment N&lt;/b&gt;&lt;div&gt;concatenate BUFFER&lt;/div&gt;&lt;div&gt;full-turn audio&lt;/div&gt;&lt;div&gt;finish ASR stream + tail padding 660 ms&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="445" width="260" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n14" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Decision mailbox&lt;/b&gt;&lt;div&gt;asyncio.Queue(maxsize=1)&lt;/div&gt;&lt;div&gt;latest segment only&lt;/div&gt;&lt;div&gt;segment mới thay segment pending cũ&lt;/div&gt;&lt;div&gt;không xếp hàng sau nhiều Unit&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="455" width="255" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n15" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Context đầu vào decision N&lt;/b&gt;&lt;div&gt;audio Segment N — bằng chứng chính&lt;/div&gt;&lt;div&gt;cached ASR transcript N-1 — phụ trợ&lt;/div&gt;&lt;div&gt;không dùng current ASR N&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="745" y="455" width="280" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n16" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;MiniCPM decision request&lt;/b&gt;&lt;div&gt;prompt nhận biết state=LISTEN&lt;/div&gt;&lt;div&gt;chỉ sinh một từ&lt;/div&gt;&lt;div&gt;continue hoặc switch&lt;/div&gt;&lt;div&gt;model.chat riêng với response&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="365" y="445" width="285" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n17" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Output hợp lệ?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="115" y="455" width="170" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n18" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Fallback khi inference/parse lỗi&lt;/b&gt;&lt;div&gt;LISTEN → continue (bảo thủ)&lt;/div&gt;&lt;div&gt;SPEAK ≥0.6s → switch&lt;/div&gt;&lt;div&gt;long_interrupt → switch&lt;/div&gt;&lt;div&gt;SPEAK ngắn → continue&lt;/div&gt;&lt;div&gt;không sửa một output hợp lệ nhưng sai&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="55" y="660" width="295" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="n19" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Decision&lt;br&gt;trong LISTEN&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="430" y="675" width="180" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n20" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;continue → KL&lt;/b&gt;&lt;div&gt;Keep Listen&lt;/div&gt;&lt;div&gt;giữ STATE=LISTEN&lt;/div&gt;&lt;div&gt;cache ASR N cho N+1&lt;/div&gt;&lt;div&gt;arm watchdog 2.5s&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="710" y="635" width="250" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n21" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;switch → L2S&lt;/b&gt;&lt;div&gt;Listen-to-Speak&lt;/div&gt;&lt;div&gt;STATE=SPEAK&lt;/div&gt;&lt;div&gt;generation mới&lt;/div&gt;&lt;div&gt;khởi động response stream&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="710" y="835" width="250" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n22" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;LISTEN continue watchdog&lt;/b&gt;&lt;div&gt;VAD_LISTEN_CONTINUE_TIMEOUT_SECONDS=2.5&lt;/div&gt;&lt;div&gt;đếm sau KL ở endpoint&lt;/div&gt;&lt;div&gt;không gọi classifier lần hai&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="650" width="285" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n23" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Sau 2.5s&lt;br&gt;mọi guard còn đúng?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="1410" y="645" width="190" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n24" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Fallback fired&lt;/b&gt;&lt;div&gt;force switch / L2S&lt;/div&gt;&lt;div&gt;decision_source=upstream_continue_timeout&lt;/div&gt;&lt;div&gt;tránh cảm giác treo LISTEN&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1655" y="620" width="230" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="n25" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Watchdog cancelled/skipped&lt;/b&gt;&lt;div&gt;có VAD start mới&lt;/div&gt;&lt;div&gt;khác epoch/index/turn&lt;/div&gt;&lt;div&gt;đang IN_SPEECH&lt;/div&gt;&lt;div&gt;state không còn LISTEN&lt;/div&gt;&lt;div&gt;decision queue không rỗng&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="835" width="255" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="n26" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;ASR finalize async&lt;/b&gt;&lt;div&gt;transcript N hoàn thành&lt;/div&gt;&lt;div&gt;cache available_from_segment=N+1&lt;/div&gt;&lt;div&gt;không block decision N&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="845" width="285" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n27" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Response pipeline&lt;/b&gt;&lt;div&gt;MiniCPM text stream → HybridPhraseChunker → VieNeu&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1690" y="865" width="195" height="95" as="geometry"/>
+        </mxCell>
+        <mxCell id="e28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n3" target="n4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n4" target="n5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e30" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n5" target="n6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e31" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n6" target="n7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e32" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n7" target="n8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n8" target="n9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e34" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n9" target="n8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e35" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n9" target="n10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e36" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n10" target="n11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e37" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n11" target="n12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e38" value="same segment" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#38761d;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n12" target="n8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e39" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n11" target="n13">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e40" value="offer latest" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#45818e;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n13" target="n14">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e41" value="final transcript" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#38761d;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n13" target="n26">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e42" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e43" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n15" target="n16">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e44" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n16" target="n17">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e45" value="no / exception" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n17" target="n18">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e46" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n17" target="n19">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e47" value="state-aware fallback" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n18" target="n19">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e48" value="continue" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n19" target="n20">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e49" value="switch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n19" target="n21">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e50" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n20" target="n22">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e51" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n22" target="n23">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e52" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n23" target="n24">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e53" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n23" target="n25">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e54" value="N+1 only" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#38761d;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n26" target="n15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e55" value="force" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n24" target="n21">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e56" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n21" target="n27">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n57" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Ý nghĩa của latest wins&lt;/b&gt;&lt;div&gt;Chỉ một segment decision chưa xử lý được giữ trong mailbox.&lt;/div&gt;&lt;div&gt;Segment mới hơn thay segment pending cũ; segment đang inference không bị preempt giữa CUDA kernel.&lt;/div&gt;&lt;div&gt;Mục tiêu: barge-in mới không phải chờ một hàng Unit 1 giây cũ.&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=12;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=1;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="880" width="565" height="105" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="03 - SPEAK Barge-in va cancellation">
+    <mxGraphModel dx="1920" dy="1080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="n2" value="&lt;div style=&quot;font-size:24px&quot;&gt;&lt;b&gt;SPEAK — giám sát barge-in, long-interrupt 1.5 giây và cancellation ưu tiên cao&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:13px;color:#555555&quot;&gt;VAD vẫn chạy khi trợ lý nói để phát hiện giọng người dùng; echo/backchannel được phân biệt bằng semantic decision&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1f4e78;strokeColor=#1f4e78;strokeWidth=1.5;fontSize=16;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;fontColor=#ffffff;spacingLeft=16;" vertex="1" parent="1">
+          <mxGeometry x="30" y="18" width="1860" height="62" as="geometry"/>
+        </mxCell>
+        <mxCell id="n3" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Effective SPEAK&lt;/b&gt;&lt;div&gt;backend STATE=SPEAK&lt;/div&gt;&lt;div&gt;hoặc browser playback ACK cho biết audio còn phát&lt;/div&gt;&lt;div&gt;generation G đang active&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="45" y="135" width="275" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n4" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Silero VAD vẫn nghe microphone&lt;/b&gt;&lt;div&gt;VAD start = người dùng/echo/noise bắt đầu có speech&lt;/div&gt;&lt;div&gt;không có nghĩa trợ lý ngừng nói&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="390" y="135" width="300" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n5" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Mở interrupt segment&lt;/b&gt;&lt;div&gt;capture observed_state=SPEAK&lt;/div&gt;&lt;div&gt;capture generation=G + turn&lt;/div&gt;&lt;div&gt;interrupt_buf=[]&lt;/div&gt;&lt;div&gt;open streaming ASR&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="760" y="125" width="285" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="n6" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Thu barge-in&lt;/b&gt;&lt;div&gt;audio frame → interrupt_buf&lt;/div&gt;&lt;div&gt;Zipformer partial song song&lt;/div&gt;&lt;div&gt;đo continuous_speech_duration&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1115" y="135" width="270" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n7" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Speech liên tục&lt;br&gt;≥ 1.5 giây?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="1455" y="130" width="185" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="n8" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Priority S2L&lt;/b&gt;&lt;div&gt;không đợi VAD endpoint&lt;/div&gt;&lt;div&gt;cancel generation G ngay&lt;/div&gt;&lt;div&gt;STATE→LISTEN; turn++&lt;/div&gt;&lt;div&gt;move interrupt_buf → LISTEN BUFFER&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1690" y="115" width="195" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="n9" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Nếu ngắn hơn 1.5 giây&lt;/b&gt;&lt;div&gt;VAD done + endpoint grace 640 ms&lt;/div&gt;&lt;div&gt;concatenate interrupt_buf thành Segment N&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="355" width="255" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n10" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;SPEAK semantic decision&lt;/b&gt;&lt;div&gt;audio N + cached ASR N-1&lt;/div&gt;&lt;div&gt;prompt state=SPEAK&lt;/div&gt;&lt;div&gt;continue / switch&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1115" y="350" width="270" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n11" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;continue&lt;br&gt;hay switch?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="830" y="355" width="190" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n12" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;continue → KS&lt;/b&gt;&lt;div&gt;Keep Speak&lt;/div&gt;&lt;div&gt;silence/noise/assistant echo&lt;/div&gt;&lt;div&gt;hoặc backchannel ngắn&lt;/div&gt;&lt;div&gt;TTS và generation G tiếp tục&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="500" y="320" width="255" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n13" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;switch → S2L&lt;/b&gt;&lt;div&gt;Speak-to-Listen&lt;/div&gt;&lt;div&gt;new question/correction/command&lt;/div&gt;&lt;div&gt;request dừng/đổi chủ đề&lt;/div&gt;&lt;div&gt;hủy generation G&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="500" y="510" width="255" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n14" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;cancel_active_generation(G)&lt;/b&gt;&lt;div&gt;set cancellation event&lt;/div&gt;&lt;div&gt;generation ID invalidated&lt;/div&gt;&lt;div&gt;new deltas/chunks của G bị bỏ&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="845" y="560" width="290" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n15" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;MLLM cancellation&lt;/b&gt;&lt;div&gt;close iterator / request stream&lt;/div&gt;&lt;div&gt;cooperative tại ranh giới text chunk&lt;/div&gt;&lt;div&gt;không preempt CUDA kernel đang chạy&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="535" width="280" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n16" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;VieNeu cancellation&lt;/b&gt;&lt;div&gt;đóng HTTP response/request&lt;/div&gt;&lt;div&gt;giải phóng semaphore&lt;/div&gt;&lt;div&gt;GPU sidecar dừng tức thời chỉ khi server xử lý disconnect&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="720" width="280" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n17" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Browser cancellation&lt;/b&gt;&lt;div&gt;server gửi stop_audio {generation:G}&lt;/div&gt;&lt;div&gt;xả scheduled PCM + Web Audio nodes&lt;/div&gt;&lt;div&gt;ACK stopped trả về bất đồng bộ&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1580" y="535" width="290" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n18" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;LISTEN cho lượt mới&lt;/b&gt;&lt;div&gt;giữ audio chen ngang làm đầu vào&lt;/div&gt;&lt;div&gt;VAD/ASR tiếp tục đến endpoint&lt;/div&gt;&lt;div&gt;decision mới không chờ queue cũ&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1580" y="760" width="290" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n19" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Generation guards chống race&lt;/b&gt;&lt;div&gt;Mọi delta, phrase, PCM và ACK mang generation ID.&lt;/div&gt;&lt;div&gt;Event của generation cũ bị bỏ nếu active_generation đã đổi.&lt;/div&gt;&lt;div&gt;Snapshot tại VAD start giữ ý nghĩa barge-in dù worker xử lý muộn hơn.&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;fontSize=12;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=1;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="45" y="730" width="420" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="n20" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Fallback classifier khi lỗi trong SPEAK&lt;/b&gt;&lt;div&gt;long_interrupt → switch&lt;/div&gt;&lt;div&gt;speech segment ≥ 0.6 s → switch&lt;/div&gt;&lt;div&gt;segment ngắn → continue&lt;/div&gt;&lt;div&gt;Một kết quả hợp lệ continue/switch không bị rule lỗi ghi đè.&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=12;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=1;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="45" y="885" width="420" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n21" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Backend không giao quyền state cho frontend&lt;/b&gt;&lt;div&gt;Backend quyết định LISTEN/SPEAK.&lt;/div&gt;&lt;div&gt;Playback ACK chỉ bổ sung sự thật audio đã scheduled/started/drained/stopped.&lt;/div&gt;&lt;div&gt;effective SPEAK tránh nhận nhầm barge-in thành lượt mới khi browser còn phát.&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=12;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=1;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="845" y="895" width="650" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="e22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n3" target="n4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e23" value="VAD start" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n4" target="n5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n5" target="n6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n6" target="n7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e26" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=2.2;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n7" target="n8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e27" value="no; tới VAD done" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n7" target="n9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n9" target="n10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n10" target="n11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e30" value="continue" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n11" target="n12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e31" value="switch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n11" target="n13">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e32" value="generation G tiếp tục" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#38761d;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n12" target="n3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n13" target="n14">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e34" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n8" target="n14">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e35" value="abort producer" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e36" value="close TTS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n16">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e37" value="stop_audio" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n17">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e38" value="finished" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n15" target="n18">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e39" value="finished" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n16" target="n18">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e40" value="ACK stopped" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n17" target="n18">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e41" value="carry interrupt audio" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n8" target="n18">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="04 - Streaming response TTS va playback">
+    <mxGraphModel dx="1920" dy="1080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="n2" value="&lt;div style=&quot;font-size:24px&quot;&gt;&lt;b&gt;RESPONSE — token/delta streaming → HybridPhraseChunker → VieNeu PCM → browser&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:13px;color:#555555&quot;&gt;Mục tiêu TTFA thấp nhưng không cắt giữa từ; VieNeu hiện dùng một HTTP streaming request cho mỗi phrase&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1f4e78;strokeColor=#1f4e78;strokeWidth=1.5;fontSize=16;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;fontColor=#ffffff;spacingLeft=16;" vertex="1" parent="1">
+          <mxGeometry x="30" y="18" width="1860" height="62" as="geometry"/>
+        </mxCell>
+        <mxCell id="n3" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;response_started&lt;/b&gt;&lt;div&gt;STATE=SPEAK&lt;/div&gt;&lt;div&gt;new generation G&lt;/div&gt;&lt;div&gt;start monotonic timer&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="45" y="145" width="220" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="n4" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;MiniCPM response stream&lt;/b&gt;&lt;div&gt;request riêng với decision&lt;/div&gt;&lt;div&gt;max_new_tokens=512&lt;/div&gt;&lt;div&gt;do_sample=False&lt;/div&gt;&lt;div&gt;emit assistant_delta&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="330" y="135" width="245" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n5" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Delta queue&lt;/b&gt;&lt;div&gt;maxsize=32&lt;/div&gt;&lt;div&gt;backpressure producer&lt;/div&gt;&lt;div&gt;generation-aware&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="640" y="145" width="205" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="n6" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;HybridPhraseChunker&lt;/b&gt;&lt;div&gt;min_chars=20&lt;/div&gt;&lt;div&gt;first target=48; later=72&lt;/div&gt;&lt;div&gt;max_chars=140&lt;/div&gt;&lt;div&gt;first timeout=350 ms&lt;/div&gt;&lt;div&gt;later timeout=500 ms&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="910" y="120" width="265" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="n7" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Có safe&lt;br&gt;boundary?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="1245" y="140" width="175" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n8" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Emit phrase&lt;/b&gt;&lt;div&gt;ưu tiên . ! ? … / newline&lt;/div&gt;&lt;div&gt;sau đó comma/semicolon/colon&lt;/div&gt;&lt;div&gt;timeout chỉ cắt ở soft/word boundary&lt;/div&gt;&lt;div&gt;không cắt giữa chữ&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1485" y="120" width="275" height="155" as="geometry"/>
+        </mxCell>
+        <mxCell id="n9" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Chưa có điểm cắt an toàn&lt;/b&gt;&lt;div&gt;giữ buffer&lt;/div&gt;&lt;div&gt;re-arm timeout&lt;/div&gt;&lt;div&gt;đợi delta kế tiếp&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1510" y="330" width="230" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n10" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Phrase queue&lt;/b&gt;&lt;div&gt;maxsize=2&lt;/div&gt;&lt;div&gt;giới hạn MLLM chạy trước TTS&lt;/div&gt;&lt;div&gt;cancel xả phrase pending của G&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1485" y="505" width="275" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n11" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;VieNeu HTTP request / phrase&lt;/b&gt;&lt;div&gt;POST /v1/audio/speech&lt;/div&gt;&lt;div&gt;stream_format=audio&lt;/div&gt;&lt;div&gt;connect timeout=10 s&lt;/div&gt;&lt;div&gt;read/provider timeout=120 s&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1125" y="495" width="285" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n12" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;HTTP 429&lt;br&gt;busy?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="865" y="505" width="175" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n13" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Busy retry&lt;/b&gt;&lt;div&gt;12 retries&lt;/div&gt;&lt;div&gt;backoff 0.25 s exponential&lt;/div&gt;&lt;div&gt;cap 2 s&lt;/div&gt;&lt;div&gt;global Semaphore=1&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="585" y="490" width="220" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n14" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;PCM stream&lt;/b&gt;&lt;div&gt;PCM16 mono 16 kHz&lt;/div&gt;&lt;div&gt;iter_content chunk=4096 bytes&lt;/div&gt;&lt;div&gt;gửi ngay từng chunk; không đợi WAV hoàn chỉnh&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1125" y="705" width="285" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n15" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Chunk PCM đầu tiên&lt;/b&gt;&lt;div&gt;emit tts_first_audio&lt;/div&gt;&lt;div&gt;metric=backend_first_pcm&lt;/div&gt;&lt;div&gt;TTFA = now - response_started&lt;/div&gt;&lt;div&gt;warmup_included=false&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#70ad47;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="785" y="700" width="260" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n16" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;WebSocket binary&lt;/b&gt;&lt;div&gt;PCM + generation G&lt;/div&gt;&lt;div&gt;browser schedule Web Audio&lt;/div&gt;&lt;div&gt;chặn chunk của generation cũ&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="460" y="710" width="250" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n17" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Playback ACK&lt;/b&gt;&lt;div&gt;scheduled → started&lt;/div&gt;&lt;div&gt;drained khi nghe hết&lt;/div&gt;&lt;div&gt;stopped khi cancel&lt;/div&gt;&lt;div&gt;ACK bất đồng bộ&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="120" y="700" width="255" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n18" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Text + phrase + PCM&lt;br&gt;đã drain?&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="1490" y="720" width="255" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n19" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Playback drain wait&lt;/b&gt;&lt;div&gt;deadline = remaining audio duration&lt;/div&gt;&lt;div&gt;+ PLAYBACK_ACK_GRACE_SECONDS=2.0&lt;/div&gt;&lt;div&gt;backend vẫn effective SPEAK trong lúc browser còn phát&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1445" y="895" width="340" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n20" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;response_finished&lt;/b&gt;&lt;div&gt;tts_stream_end&lt;/div&gt;&lt;div&gt;ACK drained hoặc timeout&lt;/div&gt;&lt;div&gt;STATE→LISTEN nếu không có generation mới&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="900" width="315" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="n21" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;S2L / superseded&lt;/b&gt;&lt;div&gt;close MLLM + current HTTP&lt;/div&gt;&lt;div&gt;clear queues&lt;/div&gt;&lt;div&gt;send stop_audio G&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="585" y="900" width="300" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="e22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n3" target="n4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e23" value="token/delta" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n4" target="n5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n5" target="n6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n6" target="n7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e26" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n7" target="n8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e27" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n7" target="n9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e28" value="next delta" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n9" target="n6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n8" target="n10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e30" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n10" target="n11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n11" target="n12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e32" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n12" target="n13">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e33" value="retry" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n13" target="n11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e34" value="no / HTTP 200" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n12" target="n14">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e35" value="first chunk" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e36" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n15" target="n16">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e37" value="remaining chunks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#e69138;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n16">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n16" target="n17">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e39" value="phrase end" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n18">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e40" value="more phrases" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n18" target="n11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e41" value="all server streams done" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n18" target="n19">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e42" value="ACK lifecycle" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n17" target="n19">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e43" value="drained / grace timeout" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n19" target="n20">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e44" value="cancel event" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n3" target="n21">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e45" value="stop_audio" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n21" target="n17">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n46" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Không phải persistent TTS session&lt;/b&gt;&lt;div&gt;VieNeu sidecar hiện không cung cấp WS/gRPC session dùng lại cho nhiều phrase trong adapter này.&lt;/div&gt;&lt;div&gt;Mỗi phrase phải trả chi phí HTTP request; connection pooling/keep-alive có thể giảm nhưng không loại bỏ hoàn toàn overhead.&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=12;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=1;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="45" y="340" width="660" height="115" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="05 - Startup warmup timeout queue tracing">
+    <mxGraphModel dx="1920" dy="1080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="n2" value="&lt;div style=&quot;font-size:24px&quot;&gt;&lt;b&gt;Startup &amp; observability — warm-up nào chạy, timeout nào bảo vệ, queue nào tạo backpressure&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:13px;color:#555555&quot;&gt;Warm-up/model load là thời gian đo động theo lần chạy; sơ đồ không gán số giả cho thời gian thực tế&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1f4e78;strokeColor=#1f4e78;strokeWidth=1.5;fontSize=16;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;fontColor=#ffffff;spacingLeft=16;" vertex="1" parent="1">
+          <mxGeometry x="30" y="18" width="1860" height="62" as="geometry"/>
+        </mxCell>
+        <mxCell id="n3" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;A. Notebook startup sequence&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="35" y="105" width="925" height="425" as="geometry"/>
+        </mxCell>
+        <mxCell id="n4" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;B. Warm-up semantics&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="985" y="105" width="900" height="425" as="geometry"/>
+        </mxCell>
+        <mxCell id="n5" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;C. Runtime timeout / queue&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="35" y="555" width="925" height="475" as="geometry"/>
+        </mxCell>
+        <mxCell id="n6" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;D. Tracing &amp; UI&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#70ad47;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="985" y="555" width="900" height="475" as="geometry"/>
+        </mxCell>
+        <mxCell id="n7" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Cell 2&lt;/b&gt;&lt;div&gt;copy/upload source vào&lt;/div&gt;&lt;div&gt;/kaggle/working/fd-badcat-model-swap&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="65" y="165" width="180" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="n8" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Cell 3&lt;/b&gt;&lt;div&gt;GPU allocation&lt;/div&gt;&lt;div&gt;ASR=0; TTS=1&lt;/div&gt;&lt;div&gt;MiniCPM sharded 0,1&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="285" y="155" width="180" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n9" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Cell 4&lt;/b&gt;&lt;div&gt;load MiniCPM-o 4.5&lt;/div&gt;&lt;div&gt;dynamic load time&lt;/div&gt;&lt;div&gt;không có fixed architecture timeout&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="505" y="150" width="195" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="n10" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Cell 5&lt;/b&gt;&lt;div&gt;start VieNeu sidecar&lt;/div&gt;&lt;div&gt;startup deadline 600 s&lt;/div&gt;&lt;div&gt;health GET timeout 3 s&lt;/div&gt;&lt;div&gt;voices timeout 10 s&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="740" y="145" width="190" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n11" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Cell 6&lt;/b&gt;&lt;div&gt;create_model_swap_app&lt;/div&gt;&lt;div&gt;Zipformer load&lt;/div&gt;&lt;div&gt;TTS health timeout 10 s&lt;/div&gt;&lt;div&gt;record external TTS warm-up&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="180" y="330" width="230" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="n12" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Cell 7&lt;/b&gt;&lt;div&gt;start Uvicorn :18000&lt;/div&gt;&lt;div&gt;backend startup deadline 60 s&lt;/div&gt;&lt;div&gt;serve browser + WS&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="500" y="340" width="215" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n13" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Ready gate&lt;/b&gt;&lt;div&gt;server emits vad_segment_ready&lt;/div&gt;&lt;div&gt;browser mới mở microphone&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="790" y="340" width="140" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n7" target="n8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n8" target="n9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n9" target="n10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n10" target="n11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n11" target="n12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n12" target="n13">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n20" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;VieNeu one-time warm-up&lt;/b&gt;&lt;div&gt;TTS_WARMUP=1&lt;/div&gt;&lt;div&gt;text: Xin chào, hệ thống đã sẵn sàng.&lt;/div&gt;&lt;div&gt;POST timeout connect=10/read=120 s&lt;/div&gt;&lt;div&gt;đọc hết PCM; đo seconds + bytes&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="150" width="285" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n21" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Notebook exports&lt;/b&gt;&lt;div&gt;TTS_WARMUP_COMPLETED=1&lt;/div&gt;&lt;div&gt;TTS_WARMUP_SECONDS=&lt;measured&gt;&lt;/div&gt;&lt;div&gt;TTS_WARMUP_BYTES=&lt;measured&gt;&lt;/div&gt;&lt;div&gt;source=notebook_startup&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#70ad47;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1360" y="150" width="250" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n22" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;App factory&lt;/b&gt;&lt;div&gt;thấy external warm-up đã xong&lt;/div&gt;&lt;div&gt;không synthesize lại&lt;/div&gt;&lt;div&gt;app.state công bố measured seconds/bytes&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1660" y="150" width="195" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n23" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Model startup costs&lt;/b&gt;&lt;div&gt;MiniCPM load: dynamic&lt;/div&gt;&lt;div&gt;Zipformer load: dynamic&lt;/div&gt;&lt;div&gt;đây là startup, không tính vào per-turn TTFA&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="350" width="285" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n24" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Native duplex warm-up: OFF&lt;/b&gt;&lt;div&gt;MLLM_LIVE_PREFILL=0&lt;/div&gt;&lt;div&gt;MLLM_WARMUP_DUPLEX_WRAPPER=0&lt;/div&gt;&lt;div&gt;không gọi model.as_duplex() trong active path&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1360" y="350" width="300" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n25" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;TTFA runtime&lt;/b&gt;&lt;div&gt;bắt đầu tại response_started&lt;/div&gt;&lt;div&gt;dừng tại backend first PCM&lt;/div&gt;&lt;div&gt;warmup_included=false&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#70ad47;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1710" y="350" width="145" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="e26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n20" target="n21">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n21" target="n22">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e28" value="excluded" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n23" target="n25">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e29" value="no wrapper cost" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n24" target="n25">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n30" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Timeouts / thresholds&lt;/b&gt;&lt;div&gt;VAD endpoint grace: 640 ms&lt;/div&gt;&lt;div&gt;SPEAK long interrupt: 1.5 s&lt;/div&gt;&lt;div&gt;LISTEN false-negative fallback: 2.5 s&lt;/div&gt;&lt;div&gt;classifier error fallback SPEAK threshold: 0.6 s&lt;/div&gt;&lt;div&gt;Hybrid phrase timeout: first 350 ms; later 500 ms&lt;/div&gt;&lt;div&gt;TTS connect/read: 10 s / 120 s&lt;/div&gt;&lt;div&gt;playback ACK grace: 2.0 s&lt;/div&gt;&lt;div&gt;TTS health: 10 s; sidecar startup: 600 s; backend startup: 60 s&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="65" y="610" width="420" height="260" as="geometry"/>
+        </mxCell>
+        <mxCell id="n31" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Queues / concurrency&lt;/b&gt;&lt;div&gt;Decision mailbox: maxsize=1, latest segment only&lt;/div&gt;&lt;div&gt;ASR input/result queue: persistent stream, depth chỉ quan sát&lt;/div&gt;&lt;div&gt;MLLM delta queue: maxsize=32&lt;/div&gt;&lt;div&gt;TTS phrase queue: maxsize=2&lt;/div&gt;&lt;div&gt;VieNeu concurrent streams: Semaphore=1&lt;/div&gt;&lt;div&gt;Busy 429: 12 retries; 0.25 s exponential backoff, cap 2 s&lt;/div&gt;&lt;div&gt;Generation ID chặn event/PCM cũ&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0e0e3;strokeColor=#45818e;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="525" y="610" width="405" height="225" as="geometry"/>
+        </mxCell>
+        <mxCell id="n32" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Shutdown guards&lt;/b&gt;&lt;div&gt;backend thread join 15 s&lt;/div&gt;&lt;div&gt;VieNeu terminate wait 15 s&lt;/div&gt;&lt;div&gt;kill wait 5 s nếu cần&lt;/div&gt;&lt;div&gt;ports :18000/:19100 verified closed&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="525" y="875" width="405" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="n33" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Per-session trace&lt;/b&gt;&lt;div&gt;TRACE_ENABLED=1&lt;/div&gt;&lt;div&gt;/kaggle/working/fd-badcat-traces&lt;/div&gt;&lt;div&gt;schema fd-badcat.trace.v1&lt;/div&gt;&lt;div&gt;JSONL monotonic timestamps&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#70ad47;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="615" width="280" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="n34" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Correlated event fields&lt;/b&gt;&lt;div&gt;trace_id, turn, segment&lt;/div&gt;&lt;div&gt;generation, state, flag&lt;/div&gt;&lt;div&gt;decision source, infer time&lt;/div&gt;&lt;div&gt;queue depth, ASR partial/final&lt;/div&gt;&lt;div&gt;TTS/ACK/cancel lifecycle&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e2f0d9;strokeColor=#70ad47;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="605" width="260" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n35" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Browser Trace UI&lt;/b&gt;&lt;div&gt;conversation timeline&lt;/div&gt;&lt;div&gt;VAD→decision latency&lt;/div&gt;&lt;div&gt;TTFA backend vs playback&lt;/div&gt;&lt;div&gt;queue current/max&lt;/div&gt;&lt;div&gt;cancellation latency&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1670" y="615" width="185" height="145" as="geometry"/>
+        </mxCell>
+        <mxCell id="n36" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Privacy / debug mode&lt;/b&gt;&lt;div&gt;raw audio và base64 không ghi trace&lt;/div&gt;&lt;div&gt;TRACE_INCLUDE_TEXT=1 trên Kaggle hiện lưu transcript/text&lt;/div&gt;&lt;div&gt;cần tắt hoặc xử lý dữ liệu nhạy cảm khi benchmark thật&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1015" y="835" width="380" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="n37" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Timing source of truth&lt;/b&gt;&lt;div&gt;backend: inference/PCM timestamps&lt;/div&gt;&lt;div&gt;browser ACK: actual schedule/start/drain&lt;/div&gt;&lt;div&gt;không dùng ACK để ghi đè semantic state&lt;/div&gt;&lt;div&gt;dùng generation ID để reconcile lệch timing&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1460" y="835" width="395" height="135" as="geometry"/>
+        </mxCell>
+        <mxCell id="e38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n33" target="n34">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e39" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n34" target="n35">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e40" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n33" target="n36">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e41" value="ACK + metrics" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n35" target="n37">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="06 - State machine va event sequence">
+    <mxGraphModel dx="1920" dy="1080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="n2" value="&lt;div style=&quot;font-size:24px&quot;&gt;&lt;b&gt;State machine tổng hợp và trình tự một lượt hội thoại có barge-in&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:13px;color:#555555&quot;&gt;KL/L2S/KS/S2L là mapping của backend từ decision continue/switch; model không sinh chung cờ và response trong active implementation&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1f4e78;strokeColor=#1f4e78;strokeWidth=1.5;fontSize=16;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;fontColor=#ffffff;spacingLeft=16;" vertex="1" parent="1">
+          <mxGeometry x="30" y="18" width="1860" height="62" as="geometry"/>
+        </mxCell>
+        <mxCell id="n3" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;A. State machine&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="35" y="105" width="780" height="900" as="geometry"/>
+        </mxCell>
+        <mxCell id="n4" value="&lt;div style=&quot;font-size:15px&quot;&gt;&lt;b&gt;B. Event sequence theo thời gian&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=14;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=0;opacity=30;spacingTop=10;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="840" y="105" width="1045" height="900" as="geometry"/>
+        </mxCell>
+        <mxCell id="n5" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;BOOT&lt;/b&gt;&lt;div&gt;load models + warm-up TTS&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="85" y="165" width="170" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="n6" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;READY&lt;/b&gt;&lt;div&gt;vad_segment_ready&lt;/div&gt;&lt;div&gt;browser opens mic&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="330" y="155" width="190" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n7" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;LISTEN&lt;/b&gt;&lt;div&gt;BUFFER / streaming ASR&lt;/div&gt;&lt;div&gt;chờ completed VAD Segment&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="580" y="155" width="190" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n8" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Decision&lt;br&gt;LISTEN&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="315" y="335" width="205" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="n9" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;KL&lt;/b&gt;&lt;div&gt;continue&lt;/div&gt;&lt;div&gt;remain LISTEN&lt;/div&gt;&lt;div&gt;arm 2.5 s watchdog&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="65" y="350" width="175" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n10" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;L2S&lt;/b&gt;&lt;div&gt;switch&lt;/div&gt;&lt;div&gt;new generation&lt;/div&gt;&lt;div&gt;start response&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="590" y="350" width="175" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n11" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;SPEAK&lt;/b&gt;&lt;div&gt;text/TTS/playback&lt;/div&gt;&lt;div&gt;VAD monitors mic&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="590" y="540" width="175" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n12" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Barge-in&lt;br&gt;decision&lt;/b&gt;&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1.6;fontSize=12;align=center;verticalAlign=middle;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="315" y="530" width="205" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="n13" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;KS&lt;/b&gt;&lt;div&gt;continue&lt;/div&gt;&lt;div&gt;echo/backchannel&lt;/div&gt;&lt;div&gt;keep generation&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9ead3;strokeColor=#38761d;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="65" y="545" width="175" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="n14" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;S2L&lt;/b&gt;&lt;div&gt;switch hoặc ≥1.5 s&lt;/div&gt;&lt;div&gt;priority cancel&lt;/div&gt;&lt;div&gt;turn++&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="315" y="735" width="205" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="n15" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Normal drain&lt;/b&gt;&lt;div&gt;text + TTS done&lt;/div&gt;&lt;div&gt;playback drained/timeout&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=left;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="590" y="735" width="175" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="e16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n5" target="n6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n6" target="n7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e18" value="VAD Segment endpoint" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n7" target="n8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e19" value="continue" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n8" target="n9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e20" value="new speech / watchdog pending" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n9" target="n7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e21" value="2.5 s timeout fires" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=1;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n9" target="n10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e22" value="switch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n8" target="n10">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e23" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n10" target="n11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e24" value="VAD Segment &lt; 1.5 s" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n11" target="n12">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e25" value="continuous speech ≥ 1.5 s" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n11" target="n14">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e26" value="continue" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n12" target="n13">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e27" value="keep speaking" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#38761d;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n13" target="n11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e28" value="switch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n12" target="n14">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e29" value="carry interrupt audio" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n14" target="n7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e30" value="response completes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n11" target="n15">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e31" value="ACK drained / grace timeout" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.7;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="n15" target="n7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n32" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Browser&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;fontSize=13;align=center;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="880" y="145" width="155" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="n33" value="" style="shape=line;html=1;strokeColor=#999999;dashed=1;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="956" y="205" width="2" height="740" as="geometry"/>
+        </mxCell>
+        <mxCell id="n34" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Backend + VAD&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=1.5;fontSize=13;align=center;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="145" width="155" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="n35" value="" style="shape=line;html=1;strokeColor=#999999;dashed=1;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="1146" y="205" width="2" height="740" as="geometry"/>
+        </mxCell>
+        <mxCell id="n36" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;Zipformer&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1.5;fontSize=13;align=center;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="145" width="155" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="n37" value="" style="shape=line;html=1;strokeColor=#999999;dashed=1;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="1336" y="205" width="2" height="740" as="geometry"/>
+        </mxCell>
+        <mxCell id="n38" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;MiniCPM&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontSize=13;align=center;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1450" y="145" width="155" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="n39" value="" style="shape=line;html=1;strokeColor=#999999;dashed=1;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="1526" y="205" width="2" height="740" as="geometry"/>
+        </mxCell>
+        <mxCell id="n40" value="&lt;div style=&quot;text-align:center;line-height:1.25&quot;&gt;&lt;b&gt;VieNeu&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1.5;fontSize=13;align=center;verticalAlign=middle;spacing=8;shadow=0;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="1640" y="145" width="155" height="55" as="geometry"/>
+        </mxCell>
+        <mxCell id="n41" value="" style="shape=line;html=1;strokeColor=#999999;dashed=1;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="1716" y="205" width="2" height="740" as="geometry"/>
+        </mxCell>
+        <mxCell id="n42" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="948" y="245" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n43" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="245" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e44" value="PCM16 16 ms frames" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n42" target="n43">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n45" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="295" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n46" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1328" y="295" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e47" value="open stream; accept_waveform" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n45" target="n46">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n48" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="345" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n49" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1518" y="345" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e50" value="decision(audio N + ASR N-1)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n48" target="n49">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n51" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1518" y="395" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n52" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="395" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e53" value="switch → L2S" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n51" target="n52">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n54" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="445" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n55" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1518" y="445" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e56" value="response stream G" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n54" target="n55">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n57" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1518" y="495" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n58" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="495" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e59" value="assistant_delta" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n57" target="n58">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n60" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="545" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n61" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1708" y="545" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e62" value="phrase HTTP stream" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n60" target="n61">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n63" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1708" y="595" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n64" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="595" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e65" value="PCM chunks; first PCM = TTFA" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n63" target="n64">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n66" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="645" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n67" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="948" y="645" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e68" value="binary PCM generation G" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n66" target="n67">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n69" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="948" y="695" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n70" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="695" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e71" value="ACK scheduled/started" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n69" target="n70">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n72" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="948" y="745" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n73" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="745" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e74" value="barge-in audio frames" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n72" target="n73">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n75" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="795" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n76" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1518" y="795" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e77" value="decision → switch / S2L" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n75" target="n76">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n78" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="845" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n79" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1708" y="845" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e80" value="close HTTP request" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n78" target="n79">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n81" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="895" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n82" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="948" y="895" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e83" value="stop_audio G" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#cc0000;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n81" target="n82">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n84" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="948" y="945" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="n85" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="1138" y="945" width="16" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="e86" value="ACK stopped; new LISTEN turn" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#555555;strokeWidth=1.4;dashed=0;endArrow=block;endFill=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;rounded=0;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" edge="1" parent="1" source="n84" target="n85">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="n87" value="&lt;div style=&quot;text-align:left;line-height:1.25&quot;&gt;&lt;b&gt;Active implementation caveats&lt;/b&gt;&lt;div&gt;vad_segment đang active; native model.as_duplex() và unified control+response token stream đang tắt.&lt;/div&gt;&lt;div&gt;Decision và response là hai request MiniCPM riêng; cùng adapter/GPU và được serialize bởi inference ownership khi cần.&lt;/div&gt;&lt;div&gt;Cancellation cooperative: không thể dừng tức thời CUDA kernel Transformers đang chạy.&lt;/div&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f4cccc;strokeColor=#cc0000;strokeWidth=1.5;fontSize=12;align=left;verticalAlign=top;spacing=8;shadow=0;dashed=1;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="870" y="855" width="965" height="125" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

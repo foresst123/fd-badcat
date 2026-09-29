@@ -1,4 +1,4 @@
-"""Zipformer RNNT provider matching FD-BADCAT's file-based ASR API."""
+"""Zipformer RNNT provider with file and persistent streaming APIs."""
 
 from __future__ import annotations
 
@@ -184,3 +184,95 @@ class ZipformerProvider:
 
         text = result if isinstance(result, str) else result.text
         return str(text).strip()
+
+    def open_stream(self, sample_rate: int = 16_000):
+        """Create one persistent online decoder for a single VAD segment."""
+
+        if int(sample_rate) != self.sample_rate:
+            raise ValueError(
+                f"Zipformer yêu cầu stream 16 kHz, nhận {sample_rate}"
+            )
+        self.load()
+        assert self._recognizer is not None
+        with self._decode_lock:
+            stream = self._recognizer.create_stream()
+        return _ZipformerStreamingSession(self, stream)
+
+
+class _ZipformerStreamingSession:
+    """Incrementally decode one speech region without recreating its state."""
+
+    def __init__(self, provider: ZipformerProvider, stream: Any) -> None:
+        self._provider = provider
+        self._stream = stream
+        self._closed = False
+        self._finished = False
+        self._samples = 0
+        self._partial = ""
+
+    @property
+    def samples(self) -> int:
+        return self._samples
+
+    @property
+    def partial(self) -> str:
+        return self._partial
+
+    def _result_text(self) -> str:
+        recognizer = self._provider._recognizer
+        assert recognizer is not None
+        result = recognizer.get_result(self._stream)
+        text = result if isinstance(result, str) else result.text
+        return str(text).strip()
+
+    def accept_waveform(self, waveform: np.ndarray) -> str:
+        """Append new mono float32 samples and return the latest partial."""
+
+        if self._closed or self._finished:
+            raise RuntimeError("Zipformer streaming session đã đóng")
+        audio = np.asarray(waveform, dtype=np.float32)
+        if audio.ndim != 1 or audio.size == 0:
+            raise ValueError("ASR streaming yêu cầu audio mono không rỗng")
+        if not np.isfinite(audio).all():
+            raise ValueError("ASR streaming nhận audio NaN hoặc infinity")
+
+        recognizer = self._provider._recognizer
+        assert recognizer is not None
+        with self._provider._decode_lock:
+            self._stream.accept_waveform(self._provider.sample_rate, audio)
+            while recognizer.is_ready(self._stream):
+                recognizer.decode_stream(self._stream)
+            self._partial = self._result_text()
+        self._samples += int(audio.size)
+        return self._partial
+
+    def finish(self) -> str:
+        """Finalize the region and return its stable transcript once."""
+
+        if self._closed:
+            return self._partial
+        if self._finished:
+            return self._partial
+
+        recognizer = self._provider._recognizer
+        assert recognizer is not None
+        with self._provider._decode_lock:
+            if self._provider.tail_padding_ms:
+                tail_size = (
+                    self._provider.sample_rate
+                    * self._provider.tail_padding_ms
+                    // 1_000
+                )
+                self._stream.accept_waveform(
+                    self._provider.sample_rate,
+                    np.zeros(tail_size, dtype=np.float32),
+                )
+            self._stream.input_finished()
+            while recognizer.is_ready(self._stream):
+                recognizer.decode_stream(self._stream)
+            self._partial = self._result_text()
+        self._finished = True
+        return self._partial
+
+    def close(self) -> None:
+        self._closed = True

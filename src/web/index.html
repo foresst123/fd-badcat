@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>FD-BADCAT MiniCPM Live</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">VAD SEGMENT · LIVE TRACE</p>
+        <h1>FD-BADCAT</h1>
+        <p class="subtitle">MiniCPM-o 4.5 · Zipformer · VieNeu Streaming</p>
+      </div>
+      <div class="connection" aria-live="polite">
+        <span id="statusDot" class="status-dot"></span>
+        <span id="connectionText">Chưa kết nối</span>
+      </div>
+    </header>
+
+    <section class="controls" aria-label="Điều khiển hội thoại">
+      <button id="startButton" class="primary" type="button">
+        <span class="mic-icon" aria-hidden="true">●</span>
+        Bắt đầu trò chuyện
+      </button>
+      <button id="stopButton" class="secondary" type="button" disabled>
+        Dừng
+      </button>
+      <label class="language">
+        Thư mục ngôn ngữ
+        <select id="languageSelect">
+          <option value="vi" selected>Tiếng Việt</option>
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="voice-state" aria-live="polite">
+      <div class="meter" aria-hidden="true">
+        <div id="meterFill" class="meter-fill"></div>
+      </div>
+      <p id="activityText">Nhấn “Bắt đầu trò chuyện” và cho phép dùng microphone.</p>
+    </section>
+
+    <section class="conversation" aria-label="Nội dung hội thoại">
+      <div class="conversation-heading">
+        <h2>Hội thoại</h2>
+        <button id="clearButton" class="text-button" type="button">Xóa màn hình</button>
+      </div>
+      <div id="messages" class="messages">
+        <p id="emptyMessage" class="empty-message">
+          Nội dung nhận dạng và câu trả lời sẽ xuất hiện tại đây.
+        </p>
+      </div>
+    </section>
+
+    <section class="trace-dashboard" aria-label="Tracing hệ thống">
+      <div class="trace-heading">
+        <div>
+          <p class="trace-kicker">SYSTEM OBSERVABILITY</p>
+          <h2>Tracing hội thoại</h2>
+        </div>
+        <span id="traceIdentity" class="trace-identity">Chưa có trace</span>
+      </div>
+
+      <div class="trace-metrics" aria-live="polite">
+        <div class="trace-metric">
+          <span>Trạng thái</span>
+          <strong id="traceState">IDLE</strong>
+        </div>
+        <div class="trace-metric">
+          <span>Turn / Generation</span>
+          <strong id="traceTurnGeneration">– / –</strong>
+        </div>
+        <div class="trace-metric">
+          <span>Quyết định</span>
+          <strong id="traceDecision">–</strong>
+        </div>
+        <div class="trace-metric">
+          <span>Decision source / raw</span>
+          <strong id="traceDecisionMeta">– / –</strong>
+        </div>
+        <div class="trace-metric">
+          <span>Decision queue / max</span>
+          <strong id="traceDecisionQueue">0 / 0</strong>
+        </div>
+        <div class="trace-metric">
+          <span>ASR frame queue / max</span>
+          <strong id="traceAsrQueue">0 / 0</strong>
+        </div>
+        <div class="trace-metric">
+          <span>TTS text queue / max</span>
+          <strong id="traceTtsQueue">0 / 0</strong>
+        </div>
+        <div class="trace-metric">
+          <span>Decision latency</span>
+          <strong id="traceDecisionLatency">–</strong>
+        </div>
+        <div class="trace-metric">
+          <span>VAD → decision</span>
+          <strong id="traceVadLatency">–</strong>
+        </div>
+        <div class="trace-metric">
+          <span>TTFA</span>
+          <strong id="traceTtfa">–</strong>
+        </div>
+        <div class="trace-metric">
+          <span>S2L → stop audio</span>
+          <strong id="traceCancelLatency">–</strong>
+        </div>
+      </div>
+
+      <div class="trace-pipeline" aria-label="Luồng xử lý hiện tại">
+        <div id="traceStageInput" class="trace-stage">
+          <span>01</span><strong>Micro</strong><small>Audio input</small>
+        </div>
+        <i aria-hidden="true">→</i>
+        <div id="traceStageVad" class="trace-stage">
+          <span>02</span><strong>VAD</strong><small>Continuous segment</small>
+        </div>
+        <i aria-hidden="true">→</i>
+        <div id="traceStageMllm" class="trace-stage">
+          <span>03</span><strong>MLLM</strong><small>Decision / response</small>
+        </div>
+        <i aria-hidden="true">→</i>
+        <div id="traceStageTts" class="trace-stage">
+          <span>04</span><strong>TTS</strong><small>PCM stream</small>
+        </div>
+        <i aria-hidden="true">→</i>
+        <div id="traceStageBrowser" class="trace-stage">
+          <span>05</span><strong>Browser</strong><small>Playback / abort</small>
+        </div>
+      </div>
+
+      <div id="traceAlerts" class="trace-alerts" aria-live="polite">
+        <p class="trace-empty">Chưa phát hiện cảnh báo.</p>
+      </div>
+
+      <div class="trace-toolbar">
+        <label>
+          Hiển thị
+          <select id="traceFilter">
+            <option value="all">Tất cả sự kiện</option>
+            <option value="decision">Decision / Segment</option>
+            <option value="audio">VAD / ASR / TTS</option>
+            <option value="lifecycle">Generation / state</option>
+            <option value="error">Cảnh báo / lỗi</option>
+          </select>
+        </label>
+        <button id="tracePauseButton" class="trace-button" type="button">
+          Tạm dừng UI
+        </button>
+        <button id="traceExportButton" class="trace-button" type="button">
+          Xuất JSON
+        </button>
+        <button id="traceClearButton" class="trace-button" type="button">
+          Xóa timeline
+        </button>
+      </div>
+
+      <div id="traceTimeline" class="trace-timeline" role="log"
+           aria-live="polite" aria-label="Timeline tracing">
+        <p class="trace-empty">Sự kiện runtime sẽ xuất hiện tại đây.</p>
+      </div>
+
+      <details class="event-panel">
+        <summary>JSON WebSocket thô</summary>
+        <pre id="eventLog"></pre>
+      </details>
+    </section>
+
+    <p class="hint">
+      Dùng tai nghe để tránh tiếng loa lọt lại vào microphone. Bạn có thể nói
+      chen khi trợ lý đang phát âm thanh.
+    </p>
+  </main>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

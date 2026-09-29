@@ -1,6 +1,9 @@
 # FD-BADCAT strict model-swap baseline
 
-This worktree starts at the official `upstream/main` commit. The dialogue
+> Tài liệu này mô tả mốc `feature/model-swap`. Worktree hiện tại đang ở
+> `experiment/live-prefill`; xem `STREAMING_EXPERIMENT.md` cho runtime đang chạy.
+
+The baseline starts at the official `upstream/main` commit. The dialogue
 controller, frontend simulator, prompts, timing and evaluation code remain
 unchanged. Only the three model functions imported from `src/module.py` are
 reimplemented:
@@ -83,7 +86,10 @@ The upstream app exposes `WebSocket /realtime`; it does not expose the custom
 ## Branch discipline
 
 - `feature/model-swap`: only model-provider changes; baseline measurements.
-- `experiment/streaming`: sentence/PCM streaming and cancellation experiments.
+- `experiment/live-prefill`: active `vad_segment` controller, persistent
+  Zipformer streaming ASR, latest-wins semantic decisions, sentence/PCM output
+  streaming and priority cancellation. Legacy `paper_unit` remains only for
+  comparison tests.
 - CAM++ speaker verification belongs to another experiment branch because it is
   shown in the architecture diagram but is not implemented in upstream code.
 

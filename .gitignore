@@ -1,7 +1,66 @@
-# /model
-
+# Python bytecode, tests and coverage
 __pycache__/
 *.py[cod]
+*$py.class
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
 .coverage
+coverage.xml
+htmlcov/
 
+# Local Python environments
+.venv/
+venv/
+env/
+
+# Local secrets; keep distributable templates
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Notebook, editor and OS metadata
+.ipynb_checkpoints/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Downloaded models and local caches
+/model/
+/models/
+/checkpoints/
+/.cache/
+
+# Runtime traces and logs
+traces/
+/fd-badcat-traces/
+*.log
+*.pid
+*.ses
+
+# Generated realtime/benchmark output
+/exp/live/
+**/realtimeout*/
+/outputs/
+/output/
+/fd-badcat-*.wav
+/fd-badcat-*.json
+/.turn*_tts.part
+/turn*_tts.wav
+
+# Local upload bundles and temporary Codex artifacts
+/*.zip
+/*.tar
+/*.tar.gz
+/*.7z
+/.codex_*
+
+# Historical generated benchmark logs
+/history/test_path_time/*_log*.txt
+/exp-dev/**/exp*_lg_*.txt
