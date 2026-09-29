@@ -7,7 +7,7 @@ from typing import Dict, Any, Union, List, Tuple
 from openai import OpenAI
 from pathlib import Path
 # 设置DeepSeek API
-DEEPSEEK_API_KEY = "sk-db0c5e50bdf7468c85d45b59c465c661"
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 MODEL_NAME = "deepseek-chat"
 

@@ -1,12 +1,12 @@
-# Chạy FD-BADCAT VAD-segment bằng `kaggle_minicpm.ipynb`
+# Chạy FD-BADCAT VAD-segment với Qwen2.5-Omni-3B
 
-Notebook: [`kaggle_minicpm.ipynb`](kaggle_minicpm.ipynb).
+Notebook: [`kaggle.ipynb`](kaggle.ipynb).
 
 Runtime mặc định:
 
 | Thành phần | Runtime |
 | --- | --- |
-| MLLM | MiniCPM-o 4.5, shard trên T4 x2 |
+| MLLM | Qwen2.5-Omni-3B Thinker text-only, shard trên T4 x2 |
 | ASR | Zipformer RNNT persistent streaming, sherpa-onnx CUDA, GPU 0 |
 | TTS | VieNeu PyTorch sidecar, GPU 1 |
 | Controller | một decision cho mỗi VAD segment, không chia Unit 1 giây |
@@ -25,9 +25,23 @@ Tại Kali/WSL:
 
 ```bash
 cd /home/minhtuan007/workspace/fd-badcat-model-swap
-zip -r ~/workspace/fd-badcat-vad-segment.zip . \
-  -x '.git/*' '.venv/*' '*/__pycache__/*' '*.pyc' \
-     'exp/*' 'history/*' 'exp-dev/*' 'evaluation/*' 'traces/*'
+
+zip -r /home/minhtuan007/workspace/fd-badcat.zip . \
+  -x '.git/*' \
+     '.venv/*' \
+     '*/__pycache__/*' \
+     '*.pyc' \
+     '*.pyo' \
+     '.pytest_cache/*' \
+     '.mypy_cache/*' \
+     'exp/*' \
+     'exp-dev/*' \
+     'history/*' \
+     'evaluation/*' \
+     'traces/*' \
+     'tests/*' \
+     '.codex*' \
+     ':memory:.ses'
 ```
 
 ZIP phải có tối thiểu:
@@ -37,12 +51,18 @@ src/backend.py
 src/vad_segment.py
 src/module.py
 src/model_swap.py
+src/mllm_gateway.py
+src/model_providers/runtime.py
+src/model_providers/factory.py
+src/model_providers/remote_http.py
 src/model_providers/zipformer.py
-src/model_providers/minicpmo.py
+src/model_providers/qwen25_omni.py
+setup/kaggle_qwen25_omni.py
 src/model_providers/vieneu.py
 src/web/index.html
 src/web/app.js
-kaggle_minicpm.ipynb
+MLLM_PLUGIN_GUIDE.md
+kaggle.ipynb
 ```
 
 Tạo private Kaggle Dataset, upload ZIP, import notebook, chọn **GPU T4 x2**,
@@ -69,20 +89,49 @@ Cell từ chối source cũ nếu thiếu `src/vad_segment.py`,
 
 ### Cell 3 — GPU
 
-Mặc định Zipformer dùng physical GPU 0, VieNeu dùng GPU 1, MiniCPM shard cả hai.
-Không gọi `minicpm.cuda()` vì sẽ phá `device_map`.
+Mặc định Zipformer dùng physical GPU 0, VieNeu dùng GPU 1, Qwen shard cả hai.
+Không gọi `mllm_model.cuda()` vì sẽ phá `device_map`. Ngân sách mặc định của
+Qwen là 12 GiB trên GPU 0 và 5 GiB trên GPU 1 để chừa VRAM cho VieNeu.
 
-### Cell 4 — MiniCPM
+### Cell 4 — Qwen2.5-Omni-3B
 
 Load model một lần. Sau khi chỉ upload ZIP mới và chạy lại Cell 2 trong cùng
-kernel, không cần chạy lại Cell 4 vì object `minicpm` vẫn tồn tại. Sau Factory
-Restart, object mất nên phải chạy lại Cell 2 → Cell 4.
+kernel, không cần chạy lại Cell 4 vì `mllm_model` vẫn tồn tại. Sau Factory
+Restart, object mất nên phải chạy lại Cell 2 → Cell 4. Cell này chỉ load Thinker;
+Talker/audio output của Qwen không được load vì VieNeu đảm nhiệm TTS.
 
 ### Cell 5 — VieNeu
 
 Clone/cài/chạy sidecar trên cổng `19100`. Health phải trả HTTP 200. Cell
 sau đó gọi chính `POST /v1/audio/speech`, đọc hết PCM và lưu
 `TTS_WARMUP_*`; chi phí này xảy ra trước backend/trace nên không tính vào TTFA.
+
+### MLLM remote thay cho Cell 4
+
+Nếu MLLM chạy ở Kaggle/notebook hoặc máy chủ khác, server model phải expose
+gateway chuẩn trong `src/mllm_gateway.py`. Ở notebook/backend FD-BADCAT đặt:
+
+```ini
+MLLM_PROVIDER=remote_http
+MLLM_URL=https://your-model-server.example.com
+MLLM_API_KEY=replace-with-the-same-secret
+```
+
+Khi đó có thể bỏ qua Cell 4 ở phía FD-BADCAT. Cell 6 dùng
+`mllm_model` và `mllm_processor`; hai object này không cần tồn tại khi
+provider là `remote_http`. Health của remote gateway phải
+công bố ít nhất:
+
+```json
+{
+  "audio_input": true,
+  "text_streaming": true
+}
+```
+
+Không bật `native_prefill` hoặc `native_duplex` nếu remote adapter chưa thực
+sự triển khai session API tương ứng. Xem `MLLM_PLUGIN_GUIDE.md` để chạy gateway,
+kiểm tra capability và cancellation.
 
 ### Cell 6 — wiring
 
@@ -98,6 +147,7 @@ ASR_EXECUTION_PROVIDER=cuda
 MLLM_LIVE_PREFILL=0
 MLLM_WARMUP_DUPLEX_WRAPPER=0
 TTS_WARMUP=1
+TTS_FIRST_AUDIO_TIMEOUT_SECONDS=8
 TTS_FIRST_PHRASE_TARGET_CHARS=48
 TTS_FIRST_PHRASE_TIMEOUT_MS=350
 TTS_PHRASE_TARGET_CHARS=72
@@ -125,10 +175,11 @@ phải là `True`.
 ### Cell 8B/8C — debug tùy chọn
 
 - 8B: xem Zipformer transcript theo vùng VAD.
-- 8C: yêu cầu MiniCPM nghe/chép audio, độc lập ASR.
+- 8C: yêu cầu Qwen local nghe/chép audio, độc lập ASR; bỏ qua khi dùng remote.
 
 ### Cell 8D — kiểm tra controller offline
 
+Cell này gọi facade MLLM hiện hành nên chạy được với cả local và remote.
 Cell này dùng đúng semantic mới:
 
 - Silero ghép vùng theo endpoint grace;
@@ -224,7 +275,7 @@ kill đúng PID đang listen cổng đó.
 ## 3. Restart và upload ZIP mới
 
 - Chỉ sửa source/upload ZIP mới, kernel còn sống: chạy Cell 2, sau đó Cell 6 →
-  Cell 7. Không cần reload MiniCPM Cell 4.
+  Cell 7. Không cần reload Qwen Cell 4.
 - Factory Restart: chạy Cell 2 → 7 vì mọi object/process handle đã mất.
 - Nếu Cell 1 đã cài package trong cùng Session, thường bắt đầu từ Cell 2.
 - Trước khi chạy lại Cell 5/7, dùng Cell 12 để tránh process cũ giữ cổng.
@@ -239,8 +290,9 @@ kill đúng PID đang listen cổng đó.
 | Queue tăng | mode mới tối đa 1 pending; xem `vad_segment_replaced` và `vad_segment_superseded` |
 | Barge-in không dừng | xem `vad_start state=SPEAK`, `s2l`, `stop_audio`; thử câu >1.5 s để kiểm tra priority path |
 | Không có ASR partial | kiểm tra `asr_stream_started/error/final`; partial có thể rỗng trước đủ context |
-| PCM rỗng | xem `generation_error`, `tts_segment_start`, VieNeu log và health 19100 |
-| CUDA OOM | dừng process cũ, giảm ngân sách MiniCPM hoặc mở session mới |
+| PCM rỗng | xem `tts_first_audio_failed`, `generation_error`, VieNeu log và health 19100 |
+| `SPEAK` nhưng chưa có tiếng | `AWAITING_PCM` chỉ được phép tối đa `TTS_FIRST_AUDIO_TIMEOUT_SECONDS`; kiểm tra queue timeout VieNeu là 1 s |
+| CUDA OOM | dừng process cũ, giảm ngân sách Qwen hoặc mở session mới |
 
 ## 5. Điều kiện benchmark hợp lệ
 

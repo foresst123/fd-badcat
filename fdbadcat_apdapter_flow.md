@@ -1,6 +1,6 @@
 # FD-BADCAT Model Swap — Architecture and Processing Flow
 
-Tài liệu này mô tả kiến trúc **đang hoạt động** của worktree `fd-badcat-model-swap` khi chạy bằng `kaggle_minicpm.ipynb`.
+Tài liệu này mô tả kiến trúc **đang hoạt động** của worktree `fd-badcat-model-swap` khi chạy bằng `kaggle.ipynb`.
 
 Sơ đồ Draw.io tương ứng: [fabadcat_adapter.drawio](./fabadcat_adapter.drawio).
 
@@ -653,3 +653,48 @@ BOOT
                                            └─ continuous speech ≥1.5 s
                                                 └─ priority S2L → cancel → LISTEN
 ```
+
+## 20. Ranh giới MLLM plug-and-play
+
+MiniCPM vẫn là provider mặc định của cấu hình Kaggle hiện tại, nhưng
+conversation core không còn chịu trách nhiệm khởi tạo một model cụ thể:
+
+```mermaid
+flowchart LR
+    CORE[FD-BADCAT conversation core] --> PORT[MLLM provider contract]
+    PORT --> LOCAL[MiniCPM/Qwen local adapter]
+    PORT --> REMOTE[Remote HTTP adapter]
+    REMOTE --> GW[MLLM gateway trên Kaggle/máy chủ]
+    GW --> DRIVER[Model-specific audio driver]
+```
+
+Contract bắt buộc gồm `generate(messages)` và
+`stream_generate(messages)`. `decide(messages)` là đường control-plane tối ưu;
+nếu không có, facade dùng `generate()` làm fallback. Provider công bố capability
+để core chỉ bật native prefill/duplex khi model thực sự hỗ trợ.
+
+Factory đọc:
+
+```ini
+MLLM_PROVIDER=minicpm_local
+```
+
+hoặc:
+
+```ini
+MLLM_PROVIDER=remote_http
+MLLM_URL=https://your-mllm.example.com
+MLLM_API_KEY=...
+```
+
+Remote gateway chuẩn hóa năm endpoint:
+
+| Endpoint | Vai trò |
+| --- | --- |
+| `GET /health` | Readiness, model và capability |
+| `GET /v1/capabilities` | Feature negotiation |
+| `POST /v1/decision` | `continue/switch` |
+| `POST /v1/generate` | NDJSON text delta stream |
+| `POST /v1/cancel/{request_id}` | Hủy response cũ khi S2L |
+
+Khi thay một provider đã cài, chỉ đổi `.env`. Một API model hoàn toàn mới vẫn

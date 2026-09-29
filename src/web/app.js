@@ -568,7 +568,7 @@
     const content = current + String(data.content || "");
     state.assistantDrafts.set(generation, content);
     addMessage("assistant", content, data.turn);
-    setActivity("MiniCPM đang sinh câu trả lời…");
+    setActivity("MLLM đang sinh câu trả lời…");
   }
 
   function isUserFacingResponse(data) {
@@ -852,7 +852,7 @@
         setActivity(`Tiếp tục thu Segment ${data.segment}; chưa gửi decision.`);
         break;
       case "vad_segment_finalized":
-        setActivity(`Đã chốt Segment ${data.segment} (${data.audio_seconds}s); MiniCPM đang quyết định.`);
+        setActivity(`Đã chốt Segment ${data.segment} (${data.audio_seconds}s); MLLM đang quyết định.`);
         break;
       case "vad_segment_tick":
         setActivity(`${String(data.flag || "").toUpperCase()} · Segment ${data.segment} · ASR hiện tại không dùng=${data.current_asr_used === false}.`);
@@ -922,7 +922,7 @@
         setActivity(`Đã ưu tiên Unit ${data.final_unit}; đang quyết định barge-in.`);
         break;
       case "paper_prefill_started":
-        setActivity("Đã mở MiniCPM response KV-cache.");
+        setActivity("Đã mở MLLM response KV-cache.");
         break;
       case "paper_prefill_tick":
         setActivity(`KV-prefill · Unit ${data.unit} · ${data.prefill_time}s`);
@@ -949,9 +949,9 @@
         break;
       case "duplex_decision":
         if (data.flag === "kl") {
-          setActivity("KL · MiniCPM tiếp tục nghe.");
+          setActivity("KL · MLLM tiếp tục nghe.");
         } else if (data.flag === "l2s") {
-          setActivity("L2S · MiniCPM bắt đầu trả lời.");
+          setActivity("L2S · MLLM bắt đầu trả lời.");
         } else if (data.flag === "ks") {
           setActivity("KS · Trợ lý tiếp tục nói.");
         } else if (data.flag === "s2l") {
@@ -977,7 +977,7 @@
         break;
       case "response_started":
         state.assistantDrafts.set(String(data.generation), "");
-        setActivity("MiniCPM đang sinh câu trả lời…");
+        setActivity("MLLM đang sinh câu trả lời…");
         break;
       case "assistant_delta":
         appendAssistantDelta(data);
@@ -1097,7 +1097,7 @@
             ));
           } else if (event === "live_prefill_fallback") {
             finish(new Error(
-              `MiniCPM chuyển sang fallback: ${data.reason || "không xác định"}`,
+              `MLLM chuyển sang fallback: ${data.reason || "không xác định"}`,
             ));
           }
         } catch (_) {
@@ -1227,7 +1227,7 @@
 
     try {
       const { liveReady } = await openWebSocket();
-      setActivity("Đang khởi tạo MiniCPM duplex…");
+      setActivity("Đang khởi tạo MLLM duplex…");
       await liveReady;
       setActivity("Đang xin quyền sử dụng microphone…");
       await startAudioCapture();

@@ -13,6 +13,8 @@ from uuid import uuid4
 import numpy as np
 import soundfile as sf
 
+from model_providers.runtime import MLLMCapabilities
+
 
 class MiniCPMProvider:
     """Translate FD-BADCAT messages into buffered or streaming MiniCPM calls."""
@@ -70,6 +72,22 @@ class MiniCPMProvider:
     def native_duplex(self) -> bool:
         return self.enable_live_prefill and callable(
             getattr(self.model, "as_duplex", None)
+        )
+
+    @property
+    def capabilities(self) -> MLLMCapabilities:
+        """Advertise optional features without leaking MiniCPM into core."""
+
+        return MLLMCapabilities(
+            audio_input=True,
+            text_streaming=True,
+            cancellation=True,
+            concurrent_requests=False,
+            live_audio_push=self.native_duplex,
+            native_prefill=self.native_prefill,
+            native_duplex=self.native_duplex,
+            persistent_kv_cache=self.native_prefill,
+            transport="in_process",
         )
 
     def _get_duplex_model(self):

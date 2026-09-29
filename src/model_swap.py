@@ -10,10 +10,11 @@ from typing import Any
 import yaml
 
 from model_providers import (
-    MiniCPMProvider,
     ModelRuntime,
     VieNeuProvider,
     ZipformerProvider,
+    create_mllm_provider,
+    get_mllm_capabilities,
 )
 from module import configure_models
 
@@ -25,19 +26,23 @@ def _env_enabled(value: object, default: bool = False) -> bool:
 
 
 def configure_model_swap(
-    minicpm: Any,
+    minicpm: Any | None = None,
     tokenizer: Any | None = None,
     *,
+    mllm_model: Any | None = None,
+    mllm_processor: Any | None = None,
     env: Mapping[str, str] | None = None,
     chat_kwargs: Mapping[str, Any] | None = None,
     stream_kwargs: Mapping[str, Any] | None = None,
     duplex_kwargs: Mapping[str, Any] | None = None,
     duplex_generate_kwargs: Mapping[str, Any] | None = None,
+    mllm_provider: Any | None = None,
     warmup_duplex_wrapper: bool | None = None,
     load_asr: bool = True,
+    check_mllm: bool = True,
     check_tts: bool = True,
 ) -> ModelRuntime:
-    """Wire MiniCPM, Zipformer and VieNeu behind the upstream API."""
+    """Wire configurable MLLM, Zipformer and VieNeu behind the core API."""
 
     active_env = os.environ if env is None else env
     duplex_mode = active_env.get(
@@ -51,9 +56,16 @@ def configure_model_swap(
         not in {"0", "false", "no", "off"}
     )
     asr_provider = ZipformerProvider.from_env(active_env)
-    mllm_provider = MiniCPMProvider(
-        minicpm,
-        tokenizer,
+    active_model = mllm_model if mllm_model is not None else minicpm
+    active_processor = (
+        mllm_processor if mllm_processor is not None else tokenizer
+    )
+    configured_mllm_provider = create_mllm_provider(
+        model=active_model,
+        tokenizer=tokenizer,
+        env=active_env,
+        processor=active_processor,
+        provider=mllm_provider,
         chat_kwargs=chat_kwargs,
         stream_kwargs=stream_kwargs,
         enable_live_prefill=enable_live_prefill,
@@ -62,6 +74,29 @@ def configure_model_swap(
     )
     tts_provider = VieNeuProvider.from_env(active_env)
 
+    capabilities = get_mllm_capabilities(configured_mllm_provider)
+    if not capabilities.audio_input:
+        raise RuntimeError(
+            f"MLLM {configured_mllm_provider.provider_name!r} không hỗ trợ "
+            "audio input; vad_segment cần model nghe được audio hiện tại"
+        )
+    if not capabilities.text_streaming:
+        raise RuntimeError(
+            f"MLLM {configured_mllm_provider.provider_name!r} không hỗ trợ "
+            "text streaming cho HybridPhraseChunker"
+        )
+    if capabilities.native_prefill and not callable(
+        getattr(configured_mllm_provider, "open_prefill_session", None)
+    ):
+        raise RuntimeError(
+            "MLLM khai báo native_prefill nhưng thiếu open_prefill_session()"
+        )
+    if capabilities.native_duplex and not callable(
+        getattr(configured_mllm_provider, "open_live_session", None)
+    ):
+        raise RuntimeError(
+            "MLLM khai báo native_duplex nhưng thiếu open_live_session()"
+        )
     if warmup_duplex_wrapper is None:
         warmup_value = active_env.get("MLLM_WARMUP_DUPLEX_WRAPPER")
         warmup_duplex_wrapper = (
@@ -70,15 +105,28 @@ def configure_model_swap(
             else warmup_value.strip().lower()
             not in {"0", "false", "no", "off"}
         )
-    if warmup_duplex_wrapper and mllm_provider.native_duplex:
-        elapsed = mllm_provider.initialize_duplex_wrapper()
+    if warmup_duplex_wrapper and capabilities.native_duplex:
+        initializer = getattr(
+            configured_mllm_provider, "initialize_duplex_wrapper", None
+        )
+        if not callable(initializer):
+            raise RuntimeError(
+                "MLLM công bố native_duplex nhưng thiếu "
+                "initialize_duplex_wrapper()"
+            )
+        elapsed = initializer()
         print(
-            "MiniCPM duplex wrapper ready before backend startup "
+            f"{configured_mllm_provider.provider_name} duplex wrapper ready "
+            "before backend startup "
             f"({elapsed:.3f}s)"
         )
 
     if load_asr:
         asr_provider.load()
+    if check_mllm:
+        ensure_mllm = getattr(configured_mllm_provider, "ensure_available", None)
+        if callable(ensure_mllm):
+            ensure_mllm()
     if check_tts:
         tts_provider.ensure_available(
             timeout=float(active_env.get("TTS_HEALTH_TIMEOUT", "10"))
@@ -114,23 +162,27 @@ def configure_model_swap(
 
     return configure_models(
         asr_provider=asr_provider,
-        mllm_provider=mllm_provider,
+        mllm_provider=configured_mllm_provider,
         tts_provider=tts_provider,
     )
 
 
 def create_model_swap_app(
-    minicpm: Any,
+    minicpm: Any | None = None,
     tokenizer: Any | None = None,
     *,
     config_path: str | Path = "src/config.yaml",
+    mllm_model: Any | None = None,
+    mllm_processor: Any | None = None,
     env: Mapping[str, str] | None = None,
     chat_kwargs: Mapping[str, Any] | None = None,
     stream_kwargs: Mapping[str, Any] | None = None,
     duplex_kwargs: Mapping[str, Any] | None = None,
     duplex_generate_kwargs: Mapping[str, Any] | None = None,
+    mllm_provider: Any | None = None,
     warmup_duplex_wrapper: bool | None = None,
     load_asr: bool = True,
+    check_mllm: bool = True,
     check_tts: bool = True,
 ):
     """Configure providers and return the selected FD-BADCAT FastAPI app."""
@@ -140,11 +192,15 @@ def create_model_swap_app(
         tokenizer,
         env=env,
         chat_kwargs=chat_kwargs,
+        mllm_model=mllm_model,
+        mllm_processor=mllm_processor,
         stream_kwargs=stream_kwargs,
         duplex_kwargs=duplex_kwargs,
         duplex_generate_kwargs=duplex_generate_kwargs,
+        mllm_provider=mllm_provider,
         warmup_duplex_wrapper=warmup_duplex_wrapper,
         load_asr=load_asr,
+        check_mllm=check_mllm,
         check_tts=check_tts,
     )
     config_file = Path(config_path)
@@ -174,4 +230,29 @@ def create_model_swap_app(
     app.state.tts_transport = getattr(
         runtime.tts, "transport_name", "unknown"
     )
+    app.state.mllm_provider = runtime.mllm.provider_name
+    app.state.mllm_capabilities = get_mllm_capabilities(
+        runtime.mllm
+    ).as_dict()
+
+    @app.get("/health")
+    async def model_swap_health():
+        """Expose selected providers and negotiated MLLM capabilities."""
+
+        return {
+            "status": "ok",
+            "asr": {
+                "provider": runtime.asr.provider_name,
+                "streaming": callable(getattr(runtime.asr, "open_stream", None)),
+            },
+            "mllm": {
+                "provider": runtime.mllm.provider_name,
+                **app.state.mllm_capabilities,
+            },
+            "tts": {
+                "provider": runtime.tts.provider_name,
+                "transport": app.state.tts_transport,
+            },
+        }
+
     return app

@@ -1,7 +1,13 @@
-"""Process-local model registry used by the original FD-BADCAT facade."""
+"""Model-provider contracts and the process-local runtime registry.
+
+The conversation controller depends on these small contracts rather than a
+particular model SDK. Optional MLLM features are advertised through
+``MLLMCapabilities`` so remote services and in-process models share one core.
+"""
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from threading import RLock
@@ -20,6 +26,73 @@ class MLLMProvider(Protocol):
     provider_name: str
 
     def generate(self, messages: list[dict[str, Any]]) -> str: ...
+
+    def stream_generate(
+        self, messages: list[dict[str, Any]]
+    ) -> Iterator[str]: ...
+
+
+@runtime_checkable
+class MLLMDecisionProvider(Protocol):
+    """Optional optimized control-plane classifier."""
+
+    def decide(self, messages: list[dict[str, Any]]) -> str: ...
+
+
+@dataclass(frozen=True)
+class MLLMCapabilities:
+    """Feature negotiation between the controller and an MLLM adapter."""
+
+    audio_input: bool = True
+    text_streaming: bool = True
+    cancellation: bool = False
+    concurrent_requests: bool = False
+    live_audio_push: bool = False
+    native_prefill: bool = False
+    native_duplex: bool = False
+    persistent_kv_cache: bool = False
+    transport: str = "in_process"
+
+    def as_dict(self) -> dict[str, bool | str]:
+        return {
+            "audio_input": self.audio_input,
+            "text_streaming": self.text_streaming,
+            "cancellation": self.cancellation,
+            "concurrent_requests": self.concurrent_requests,
+            "live_audio_push": self.live_audio_push,
+            "native_prefill": self.native_prefill,
+            "native_duplex": self.native_duplex,
+            "persistent_kv_cache": self.persistent_kv_cache,
+            "transport": self.transport,
+        }
+
+    @classmethod
+    def from_mapping(cls, value: Mapping[str, Any]) -> "MLLMCapabilities":
+        fields = cls.__dataclass_fields__
+        return cls(**{
+            name: value[name]
+            for name in fields
+            if name in value
+        })
+
+
+def get_mllm_capabilities(provider: Any) -> MLLMCapabilities:
+    """Return declared capabilities, with safe legacy-provider inference."""
+
+    value = getattr(provider, "capabilities", None)
+    if callable(value):
+        value = value()
+    if isinstance(value, MLLMCapabilities):
+        return value
+    if isinstance(value, Mapping):
+        return MLLMCapabilities.from_mapping(value)
+    native_prefill = bool(getattr(provider, "native_prefill", False))
+    return MLLMCapabilities(
+        text_streaming=callable(getattr(provider, "stream_generate", None)),
+        native_prefill=native_prefill,
+        native_duplex=bool(getattr(provider, "native_duplex", False)),
+        persistent_kv_cache=native_prefill,
+    )
 
 
 @runtime_checkable
@@ -49,7 +122,8 @@ def configure_runtime(*, asr: Any, mllm: Any, tts: Any) -> ModelRuntime:
         )
     if not isinstance(mllm, MLLMProvider):
         raise TypeError(
-            "MLLM provider phải có provider_name và generate(messages)"
+            "MLLM provider phải có provider_name, generate(messages) và "
+            "stream_generate(messages)"
         )
     if not isinstance(tts, TTSProvider):
         raise TypeError(
@@ -69,8 +143,7 @@ def get_runtime() -> ModelRuntime:
     if runtime is None:
         raise RuntimeError(
             "Model runtime chưa được cấu hình. Trên Kaggle, hãy gọi "
-            "model_swap.configure_model_swap(minicpm, tokenizer) trước khi "
-            "khởi động backend."
+            "model_swap.configure_model_swap(...) trước khi khởi động backend."
         )
     return runtime
 

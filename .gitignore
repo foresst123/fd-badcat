@@ -36,6 +36,13 @@ Thumbs.db
 /models/
 /checkpoints/
 /.cache/
+/huggingface/
+/VieNeu-TTS/
+/wandb/
+
+# Local service credentials
+/.kaggle/
+/kaggle.json
 
 # Runtime traces and logs
 traces/
@@ -50,9 +57,13 @@ traces/
 /outputs/
 /output/
 /fd-badcat-*.wav
+/fd-badcat-*.pcm
+/fd-badcat-*.mp3
+/fd-badcat-*.m4a
 /fd-badcat-*.json
 /.turn*_tts.part
 /turn*_tts.wav
+/tmp/
 
 # Local upload bundles and temporary Codex artifacts
 /*.zip
@@ -64,3 +75,8 @@ traces/
 # Historical generated benchmark logs
 /history/test_path_time/*_log*.txt
 /exp-dev/**/exp*_lg_*.txt
+
+# Legacy experiment snapshots and raw runs are not required by the adapter.
+# Keep them locally, but do not publish embedded credentials or generated audio.
+/history/
+/exp/

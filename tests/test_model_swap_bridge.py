@@ -688,6 +688,88 @@ class VieNeuProviderTests(unittest.TestCase):
         response.close.assert_called_once_with()
 
 
+    def test_first_audio_timeout_is_actionable(self):
+        provider = VieNeuProvider(
+            "http://tts.local",
+            first_audio_timeout=0.25,
+        )
+        with patch(
+            "model_providers.vieneu.requests.post",
+            side_effect=requests.ReadTimeout("first PCM stalled"),
+        ):
+            with self.assertRaises(RuntimeError) as raised:
+                list(provider.stream_pcm("Xin chào"))
+
+        message = str(raised.exception)
+        self.assertIn("không trả PCM đầu tiên", message)
+        self.assertIn("0.250s", message)
+        self.assertIn("Xin chào", message)
+
+    def test_close_keeps_slot_until_inflight_http_start_exits(self):
+        first_entered = threading.Event()
+        release_first = threading.Event()
+        second_called = threading.Event()
+
+        first = Mock()
+        first.status_code = 200
+        first.headers = {}
+        first.raise_for_status.return_value = None
+        first.iter_content.return_value = [b"\x01\x00"]
+
+        second = Mock()
+        second.status_code = 200
+        second.headers = {}
+        second.raise_for_status.return_value = None
+        second.iter_content.return_value = [b"\x02\x00"]
+
+        calls = 0
+
+        def post(*_args, **_kwargs):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                first_entered.set()
+                release_first.wait(timeout=2)
+                return first
+            second_called.set()
+            return second
+
+        provider = VieNeuProvider(
+            "http://tts.local",
+            max_concurrent_streams=1,
+            first_audio_timeout=1,
+        )
+        one = provider.stream_pcm("Câu một")
+        two = provider.stream_pcm("Câu hai")
+        results = {}
+
+        def consume(name, stream):
+            try:
+                results[name] = list(stream)
+            except BaseException as exc:
+                results[name] = exc
+
+        with patch(
+            "model_providers.vieneu.requests.post",
+            side_effect=post,
+        ):
+            thread_one = threading.Thread(target=consume, args=("one", one))
+            thread_two = threading.Thread(target=consume, args=("two", two))
+            thread_one.start()
+            self.assertTrue(first_entered.wait(timeout=1))
+            one.close()
+            thread_two.start()
+            time.sleep(0.05)
+            self.assertFalse(second_called.is_set())
+            release_first.set()
+            thread_one.join(timeout=2)
+            thread_two.join(timeout=2)
+
+        self.assertFalse(thread_one.is_alive())
+        self.assertFalse(thread_two.is_alive())
+        self.assertEqual(results["one"], [])
+        self.assertEqual(results["two"], [b"\x02\x00"])
+
     def test_warmup_consumes_stream_once_and_records_metadata(self):
         response = Mock()
         response.status_code = 200
@@ -833,6 +915,76 @@ class StreamingPipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(engine._effective_controller_state(), "LISTEN")
         events = [call.args[0] for call in engine.send_control.await_args_list]
         self.assertEqual(events, ["playback_acknowledged", "response_complete"])
+
+    async def test_send_control_tolerates_socket_closed_during_send(self):
+        class ClosedWebSocket:
+            def __init__(self):
+                self.calls = 0
+
+            async def send_text(self, _value):
+                self.calls += 1
+                raise RuntimeError(
+                    'Cannot call "send" once a close message has been sent.'
+                )
+
+        websocket = ClosedWebSocket()
+        engine = ConversationEngine.__new__(ConversationEngine)
+        engine.websocket = websocket
+        engine._websocket_connected = True
+        engine._send_lock = asyncio.Lock()
+        engine.trace_event = Mock()
+
+        self.assertFalse(await engine.send_control("cleanup", {}))
+        self.assertFalse(await engine.send_control("cleanup_again", {}))
+        self.assertFalse(engine._websocket_connected)
+        self.assertEqual(websocket.calls, 1)
+
+    async def test_disconnect_cancels_playback_ack_before_cleanup_send(self):
+        websocket = FakeWebSocket()
+        websocket.receive = AsyncMock(return_value={
+            "type": "websocket.disconnect"
+        })
+        engine = ConversationEngine.__new__(ConversationEngine)
+        engine.VAD_SEGMENT = False
+        engine.PAPER_UNIT = False
+        engine.LIVE_PREFILL = False
+        engine.STATE = "SPEAK"
+        engine.SAMPLE_RATE = 16_000
+        engine.TURN_IDX = 0
+        engine.trace = None
+        engine._active_generation_id = 4
+        engine._generation_cancel_event = threading.Event()
+        engine._generation_task = None
+        engine._active_mllm_stream = None
+        engine._active_tts_stream = None
+        engine._active_response_parts = []
+        engine._playback_generation = 4
+        engine._playback_turn = 0
+        engine._playback_phase = "PLAYING"
+        engine._playback_server_done = True
+        engine._response_complete_generations = set()
+        playback_timeout = asyncio.create_task(asyncio.sleep(60))
+        engine._playback_timeout_task = playback_timeout
+        engine.stop_vad_segments = AsyncMock()
+        engine.stop_paper_units = AsyncMock()
+        engine.stop_live_prefill = AsyncMock()
+        engine.vad_iterator = Mock()
+        engine.reset = Mock()
+
+        await engine.run_realtime(websocket)
+
+        self.assertTrue(playback_timeout.cancelled())
+        self.assertFalse(engine._websocket_connected)
+        self.assertIsNone(engine.websocket)
+        control_events = [
+            payload["event"]
+            for kind, payload in websocket.messages
+            if kind == "text"
+        ]
+        self.assertEqual(control_events, ["session_started"])
+        engine.stop_vad_segments.assert_awaited_once_with()
+        engine.stop_paper_units.assert_awaited_once_with()
+        engine.stop_live_prefill.assert_awaited_once_with()
 
     async def test_stale_playback_ack_cannot_clear_current_generation(self):
         engine = ConversationEngine.__new__(ConversationEngine)
@@ -1536,6 +1688,51 @@ class StreamingPipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(stop_payload["generation"], 7)
         self.assertEqual(stop_payload["reason"], "paper_unit_s2l")
 
+    async def test_generation_error_clears_awaiting_pcm_state(self):
+        engine = ConversationEngine.__new__(ConversationEngine)
+        engine.STATE = "SPEAK"
+        engine.TURN_IDX = 3
+        engine._active_generation_id = 7
+        engine._generation_cancel_event = __import__("threading").Event()
+        mllm_stream = Mock()
+        tts_stream = Mock()
+        engine._active_mllm_stream = mllm_stream
+        engine._active_tts_stream = tts_stream
+        engine._generation_task = asyncio.current_task()
+        engine._playback_generation = 7
+        engine._playback_turn = 3
+        engine._playback_phase = "AWAITING_PCM"
+        engine._playback_server_done = False
+        engine._playback_timeout_task = None
+        engine._active_response_parts = ["Câu trả lời đang chờ TTS"]
+        engine.start_wall = time.time()
+        engine.send_control = AsyncMock()
+
+        await engine._handle_generation_error(
+            3, 7, RuntimeError("VieNeu first PCM timeout")
+        )
+
+        self.assertEqual(engine.STATE, "LISTEN")
+        self.assertIsNone(engine._active_generation_id)
+        self.assertIsNone(engine._playback_generation)
+        self.assertEqual(engine._playback_phase, "STOPPED")
+        mllm_stream.close.assert_called_once_with()
+        tts_stream.close.assert_called_once_with()
+        events = [
+            call.args[0] for call in engine.send_control.await_args_list
+        ]
+        self.assertEqual(events, [
+            "generation_cancel_requested",
+            "stop_audio",
+            "generation_cancel_finished",
+            "generation_error",
+        ])
+        error_payload = engine.send_control.await_args_list[-1].args[1]
+        self.assertEqual(error_payload["state"], "LISTEN")
+        self.assertEqual(
+            error_payload["failed_playback_phase"], "AWAITING_PCM"
+        )
+
     async def test_live_duplex_maps_all_four_fd_badcat_transitions(self):
         def make_engine(state):
             engine = ConversationEngine.__new__(ConversationEngine)
@@ -2128,7 +2325,7 @@ class BrowserUITests(unittest.TestCase):
         self.assertIn("/realtime", route_paths)
 
         web_dir = SRC_DIR / "web"
-        self.assertIn("MiniCPM-o 4.5", (web_dir / "index.html").read_text())
+        self.assertIn("Qwen2.5-Omni-3B", (web_dir / "index.html").read_text())
         app_js = (web_dir / "app.js").read_text()
         self.assertIn('case "paper_unit_ready"', app_js)
         self.assertIn('case "vad_segment_ready"', app_js)

@@ -48,18 +48,22 @@ class VieNeuProvider:
         *,
         voice: str | None = None,
         timeout: float = 120.0,
+        first_audio_timeout: float = 8.0,
         api_key: str | None = None,
         max_concurrent_streams: int = 1,
-        busy_retries: int = 12,
+        busy_retries: int = 3,
         busy_backoff: float = 0.25,
     ) -> None:
         if max_concurrent_streams < 1:
             raise ValueError("TTS max_concurrent_streams phải >= 1")
         if busy_retries < 0 or busy_backoff < 0:
             raise ValueError("TTS busy retry/backoff không được âm")
+        if timeout <= 0 or first_audio_timeout <= 0:
+            raise ValueError("TTS timeout phải lớn hơn 0")
         self.base_url = base_url.rstrip("/")
         self.voice = voice
-        self.timeout = timeout
+        self.timeout = float(timeout)
+        self.first_audio_timeout = float(first_audio_timeout)
         self.api_key = api_key
         self.max_concurrent_streams = int(max_concurrent_streams)
         self.busy_retries = int(busy_retries)
@@ -77,11 +81,14 @@ class VieNeuProvider:
             env.get("TTS_URL", "http://127.0.0.1:19100"),
             voice=env.get("TTS_VOICE") or None,
             timeout=float(env.get("TTS_TIMEOUT", "120")),
+            first_audio_timeout=float(
+                env.get("TTS_FIRST_AUDIO_TIMEOUT_SECONDS", "8")
+            ),
             api_key=env.get("TTS_API_KEY") or None,
             max_concurrent_streams=int(
                 env.get("TTS_MAX_CONCURRENT_STREAMS", "1")
             ),
-            busy_retries=int(env.get("TTS_BUSY_RETRIES", "12")),
+            busy_retries=int(env.get("TTS_BUSY_RETRIES", "3")),
             busy_backoff=float(env.get("TTS_BUSY_BACKOFF", "0.25")),
         )
 
@@ -231,9 +238,26 @@ class _VieNeuPCMStream(Iterator[bytes]):
         self.queue_wait_seconds: float | None = None
         self.busy_retries = 0
         self.request_id: str | None = None
+        self._first_audio_started_at: float | None = None
 
     def __iter__(self) -> "_VieNeuPCMStream":
         return self
+
+    def _first_audio_timeout_error(self) -> RuntimeError:
+        preview = " ".join(self._text.split())[:160]
+        return RuntimeError(
+            "VieNeu không trả PCM đầu tiên trong "
+            f"{self._provider.first_audio_timeout:.3f}s "
+            f"(voice={self._provider.voice or '<default>'!r}, "
+            f"text={preview!r})"
+        )
+
+    def _first_audio_remaining(self) -> float:
+        if self._first_audio_started_at is None:
+            self._first_audio_started_at = time.perf_counter()
+        return self._provider.first_audio_timeout - (
+            time.perf_counter() - self._first_audio_started_at
+        )
 
     def _close_response(self) -> None:
         with self._response_lock:
@@ -247,9 +271,17 @@ class _VieNeuPCMStream(Iterator[bytes]):
 
     def _acquire_slot(self) -> None:
         started_at = time.perf_counter()
-        while not self._provider._stream_slots.acquire(timeout=0.05):
+        self._first_audio_started_at = started_at
+        while True:
             if self._closed.is_set():
                 raise StopIteration
+            remaining = self._first_audio_remaining()
+            if remaining <= 0:
+                raise self._first_audio_timeout_error()
+            if self._provider._stream_slots.acquire(
+                timeout=min(0.05, remaining)
+            ):
+                break
         with self._slot_lock:
             self._slot_acquired = True
         self.queue_wait_seconds = round(
@@ -293,12 +325,15 @@ class _VieNeuPCMStream(Iterator[bytes]):
         }
         self._acquire_slot()
         while True:
+            remaining = self._first_audio_remaining()
+            if remaining <= 0:
+                raise self._first_audio_timeout_error()
             response = requests.post(
                 f"{self._provider.base_url}/v1/audio/speech",
                 json=payload,
                 headers=self._provider._headers(),
                 stream=True,
-                timeout=(10.0, self._provider.timeout),
+                timeout=(min(10.0, remaining), remaining),
             )
             if response.status_code != 429:
                 break
@@ -307,9 +342,14 @@ class _VieNeuPCMStream(Iterator[bytes]):
             self.busy_retries += 1
             delay = self._retry_delay(response)
             response.close()
-            if self._closed.wait(delay):
+            remaining = self._first_audio_remaining()
+            if remaining <= 0:
+                raise self._first_audio_timeout_error()
+            if self._closed.wait(min(delay, remaining)):
                 self._release_slot()
                 raise StopIteration
+            if self._first_audio_remaining() <= 0:
+                raise self._first_audio_timeout_error()
 
         with self._response_lock:
             if self._closed.is_set():
@@ -378,6 +418,8 @@ class _VieNeuPCMStream(Iterator[bytes]):
                 self._finish()
                 if self._closed.is_set():
                     raise StopIteration from exc
+                if isinstance(exc, requests.Timeout) and self._byte_count == 0:
+                    raise self._first_audio_timeout_error() from exc
                 if status_code == 429:
                     raise RuntimeError(
                         "VieNeu vẫn bận (HTTP 429) sau "
@@ -395,4 +437,12 @@ class _VieNeuPCMStream(Iterator[bytes]):
     def close(self) -> None:
         self._closed.set()
         self._close_response()
-        self._release_slot()
+        # Do not release the local slot while another thread is still inside
+        # requests.post()/iter_content(). Releasing it early allowed a new
+        # generation to start a second HTTP request while the cancelled one
+        # was still queued in the VieNeu sidecar.
+        if self._operation_lock.acquire(blocking=False):
+            try:
+                self._finish()
+            finally:
+                self._operation_lock.release()

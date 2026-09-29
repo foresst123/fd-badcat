@@ -125,6 +125,7 @@ class ConversationEngine:
         self.vad_model = load_silero_vad()
         self.vad_iterator = VADIterator(self.vad_model, sampling_rate=self.SAMPLE_RATE)
         self.websocket = websocket
+        self._websocket_connected = websocket is not None
         self.trace = TraceRecorder.from_env()
         if self.trace.error:
             print("Tracing disabled:", self.trace.error)
@@ -263,6 +264,9 @@ class ConversationEngine:
         )
         self.TTS_PHRASE_TIMEOUT_SECONDS = max(
             0.05, float(os.getenv("TTS_PHRASE_TIMEOUT_MS", "500")) / 1_000
+        )
+        self.TTS_FIRST_AUDIO_TIMEOUT_SECONDS = max(
+            0.5, float(os.getenv("TTS_FIRST_AUDIO_TIMEOUT_SECONDS", "8"))
         )
         self.PLAYBACK_ACK_GRACE_SECONDS = max(
             0.5, float(os.getenv("PLAYBACK_ACK_GRACE_SECONDS", "2.0"))
@@ -465,42 +469,76 @@ class ConversationEngine:
         if recorder is not None:
             recorder.record(event_type, data or {}, level=level)
 
+    @staticmethod
+    def _closed_websocket_send_error(exc):
+        message = str(exc).lower()
+        return (
+            "close message" in message
+            or "websocket is disconnected" in message
+        )
+
+    async def _send_websocket_payload(
+        self, payload, *, binary=False, generation_id=None
+    ):
+        websocket = getattr(self, "websocket", None)
+        if (
+            not websocket
+            or not getattr(self, "_websocket_connected", True)
+        ):
+            return False
+        async with self._send_lock:
+            if (
+                websocket is not getattr(self, "websocket", None)
+                or not getattr(self, "_websocket_connected", True)
+                or (
+                    generation_id is not None
+                    and not self.generation_is_current(generation_id)
+                )
+            ):
+                return False
+            try:
+                if binary:
+                    await websocket.send_bytes(payload)
+                else:
+                    await websocket.send_text(payload)
+            except WebSocketDisconnect:
+                self._websocket_connected = False
+                return False
+            except RuntimeError as exc:
+                if not self._closed_websocket_send_error(exc):
+                    raise
+                self._websocket_connected = False
+                return False
+        return True
+
     async def send_control(self, event_type: str, data=None, *, level="info"):
         event_data = data or {}
         self.trace_event(event_type, event_data, level=level)
-        websocket = getattr(self, "websocket", None)
-        if not websocket:
-            return
         payload = {"event": event_type, "data": event_data}
-        async with self._send_lock:
-            await websocket.send_text(json.dumps(payload))
+        return await self._send_websocket_payload(json.dumps(payload))
 
     def generation_is_current(self, generation_id):
         return generation_id == self._active_generation_id
 
     async def send_generation_control(self, generation_id, event_type, data=None):
-        if not self.websocket:
-            return False
         event_data = data or {}
         payload = {"event": event_type, "data": event_data}
-        async with self._send_lock:
-            if not self.generation_is_current(generation_id):
-                return False
+        sent = await self._send_websocket_payload(
+            json.dumps(payload), generation_id=generation_id
+        )
+        if sent:
             self.trace_event(event_type, event_data)
-            await self.websocket.send_text(json.dumps(payload))
-        return True
+        return sent
 
     async def send_generation_audio(self, generation_id, audio_bytes):
-        if not self.websocket:
-            return False
-        async with self._send_lock:
-            if not self.generation_is_current(generation_id):
-                return False
+        sent = await self._send_websocket_payload(
+            audio_bytes, binary=True, generation_id=generation_id
+        )
+        if sent:
             recorder = getattr(self, "trace", None)
             if recorder is not None:
                 recorder.note_audio(len(audio_bytes))
-            await self.websocket.send_bytes(audio_bytes)
-        return True
+        return sent
 
     def _playback_is_active(self):
         return (
@@ -534,6 +572,15 @@ class ConversationEngine:
         self._playback_turn = None
         self._playback_phase = phase
         self._playback_server_done = False
+
+    async def _cancel_playback_ack_timeout(self):
+        task = getattr(self, "_playback_timeout_task", None)
+        self._playback_timeout_task = None
+        if task is None or task is asyncio.current_task():
+            return
+        if not task.done():
+            task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
 
     async def _send_response_complete(self, turn_id, generation_id, reason):
         completed = getattr(self, "_response_complete_generations", None)
@@ -792,14 +839,9 @@ class ConversationEngine:
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            if self.generation_is_current(generation_id):
-                self.STATE = "LISTEN"
-                self._active_generation_id = None
-                await self.send_control("generation_error", {
-                    "turn": turn_id,
-                    "generation": generation_id,
-                    "message": str(exc),
-                })
+            await self._handle_generation_error(
+                turn_id, generation_id, exc
+            )
 
     def _generation_done(self, task):
         if self._generation_task is task:
@@ -3483,6 +3525,31 @@ class ConversationEngine:
                                 generation_id, chunk
                             ):
                                 raise asyncio.CancelledError
+                    except Exception as exc:
+                        if first_audio_seconds is None:
+                            await self.send_generation_control(
+                                generation_id,
+                                "tts_first_audio_failed",
+                                {
+                                    "timestamp": round(
+                                        time.time() - self.start_wall, 3
+                                    ),
+                                    "turn": turn_id,
+                                    "generation": generation_id,
+                                    "segment": segment_count,
+                                    "elapsed": round(
+                                        time.perf_counter() - segment_started, 3
+                                    ),
+                                    "timeout_seconds": getattr(
+                                        self,
+                                        "TTS_FIRST_AUDIO_TIMEOUT_SECONDS",
+                                        8.0,
+                                    ),
+                                    "playback_phase": self._playback_phase,
+                                    "message": str(exc),
+                                },
+                            )
+                        raise
                     finally:
                         if getattr(self, "_active_tts_stream", None) is active_stream:
                             self._active_tts_stream = None
@@ -3565,6 +3632,27 @@ class ConversationEngine:
             },
         )
 
+    async def _handle_generation_error(
+        self, turn_id, generation_id, exc
+    ):
+        """Abort every output layer and restore LISTEN after a failed stream."""
+
+        if not self.generation_is_current(generation_id):
+            return
+        failed_phase = getattr(self, "_playback_phase", "IDLE")
+        await self.cancel_active_generation(
+            "generation_error", notify_client=True
+        )
+        self.STATE = "LISTEN"
+        await self.send_control("generation_error", {
+            "timestamp": round(time.time() - self.start_wall, 3),
+            "turn": turn_id,
+            "generation": generation_id,
+            "state": self.STATE,
+            "failed_playback_phase": failed_phase,
+            "message": str(exc),
+        })
+
     async def async_streaming_response(
         self,
         user_audio,
@@ -3590,16 +3678,9 @@ class ConversationEngine:
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            if self.generation_is_current(generation_id):
-                self.STATE = "LISTEN"
-                self._active_generation_id = None
-                await self.send_control("generation_error", {
-                    "timestamp": round(time.time() - self.start_wall, 3),
-                    "turn": turn_id,
-                    "generation": generation_id,
-                    "state": self.STATE,
-                    "message": str(exc),
-                })
+            await self._handle_generation_error(
+                turn_id, generation_id, exc
+            )
         else:
             if (
                 (
@@ -3838,6 +3919,7 @@ class ConversationEngine:
     async def run_realtime(self, websocket: WebSocket):
         print("client ok")
         self.websocket = websocket
+        self._websocket_connected = True
         if not hasattr(self, "_send_lock"):
             self._send_lock = asyncio.Lock()
         self.start_wall = time.time()
@@ -3871,6 +3953,9 @@ class ConversationEngine:
                 self, "SEGMENT_LISTEN_CONTINUE_TIMEOUT_SECONDS", None
             ),
             "tts_output_mode": "hybrid_phrase_stream",
+            "tts_first_audio_timeout_seconds": getattr(
+                self, "TTS_FIRST_AUDIO_TIMEOUT_SECONDS", 8.0
+            ),
             "tts_first_phrase_timeout_ms": round(
                 getattr(self, "TTS_FIRST_PHRASE_TIMEOUT_SECONDS", 0.35)
                 * 1_000
@@ -3919,6 +4004,7 @@ class ConversationEngine:
                     and message["type"] == "websocket.disconnect"
                 ):
                     close_reason = "websocket_disconnect"
+                    self._websocket_connected = False
                     break
 
                 # text message
@@ -3974,6 +4060,7 @@ class ConversationEngine:
 
         except WebSocketDisconnect:
             close_reason = "websocket_disconnect"
+            self._websocket_connected = False
             self.trace_event("websocket_disconnected", {
                 "turn": self.TURN_IDX,
                 "state": self.STATE,
@@ -3992,12 +4079,15 @@ class ConversationEngine:
         finally:
             final_state = self.STATE
             final_turn = self.TURN_IDX
+            self._websocket_connected = False
+            await self._cancel_playback_ack_timeout()
             await self.cancel_active_generation("connection_closed")
             await self.stop_vad_segments()
             await self.stop_paper_units()
             await self.stop_live_prefill()
             self.vad_iterator.reset_states()
             self.reset()
+            self.websocket = None
             if recorder is not None:
                 recorder.close({
                     "close_reason": close_reason,

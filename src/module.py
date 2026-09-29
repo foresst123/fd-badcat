@@ -15,6 +15,7 @@ from typing import Any
 from model_providers.runtime import (
     ModelRuntime,
     configure_runtime,
+    get_mllm_capabilities,
     get_runtime,
 )
 
@@ -58,13 +59,13 @@ def asr_streaming_supported() -> bool:
     return callable(getattr(get_runtime().asr, "open_stream", None))
 
 
-def llm_qwen3o(messages: list[dict[str, Any]]) -> str:
-    """Preserve FD-BADCAT's buffered MLLM contract."""
+def mllm_generate(messages: list[dict[str, Any]]) -> str:
+    """Run one model-agnostic buffered MLLM request."""
 
     return str(get_runtime().mllm.generate(messages)).strip()
 
 
-def llm_qwen3o_decide(messages: list[dict[str, Any]]) -> str:
+def mllm_decide(messages: list[dict[str, Any]]) -> str:
     """Run the short, non-streaming ``continue/switch`` request."""
 
     provider = get_runtime().mllm
@@ -74,24 +75,45 @@ def llm_qwen3o_decide(messages: list[dict[str, Any]]) -> str:
     return str(provider.generate(messages)).strip()
 
 
+def mllm_stream_response(
+    messages: list[dict[str, Any]],
+) -> Iterator[str]:
+    """Yield model-agnostic text deltas for hybrid-phrase TTS."""
+
+    return get_runtime().mllm.stream_generate(messages)
+
+
+def mllm_capabilities() -> dict[str, bool | str]:
+    """Return normalized provider features for diagnostics and routing."""
+
+    return get_mllm_capabilities(get_runtime().mllm).as_dict()
+
+
+# Compatibility names retained for upstream FD-BADCAT and old notebooks.
+def llm_qwen3o(messages: list[dict[str, Any]]) -> str:
+    return mllm_generate(messages)
+
+
+def llm_qwen3o_decide(messages: list[dict[str, Any]]) -> str:
+    return mllm_decide(messages)
+
+
 def llm_qwen3o_stream(
     messages: list[dict[str, Any]],
 ) -> Iterator[str]:
-    """Yield native MLLM text deltas for the streaming experiment."""
-
-    return get_runtime().mllm.stream_generate(messages)
+    return mllm_stream_response(messages)
 
 
 def mllm_live_supported() -> bool:
     """Return whether the configured MLLM exposes native duplex prefill."""
 
-    return bool(getattr(get_runtime().mllm, "native_duplex", False))
+    return bool(get_mllm_capabilities(get_runtime().mllm).native_duplex)
 
 
 def mllm_prefill_supported() -> bool:
     """Return whether paper Units can reuse a native streaming KV-cache."""
 
-    return bool(getattr(get_runtime().mllm, "native_prefill", False))
+    return bool(get_mllm_capabilities(get_runtime().mllm).native_prefill)
 
 
 def open_mllm_prefill_session(messages: list[dict[str, Any]]):
@@ -105,7 +127,7 @@ def open_mllm_prefill_session(messages: list[dict[str, Any]]):
 
 
 def open_mllm_live_session(system_prompt: str):
-    """Open one exclusive MiniCPM native duplex context."""
+    """Open one exclusive native MLLM duplex context."""
 
     provider = get_runtime().mllm
     factory = getattr(provider, "open_live_session", None)
