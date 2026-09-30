@@ -1,3 +1,4 @@
+
 numpy
 pyyaml
 tqdm
@@ -5,12 +6,19 @@ requests
 uvicorn
 fastapi
 soundfile
-torchaudio
-torch
 silero-vad
 websockets
-sherpa-onnx
 modelscope
-transformers
 aiohttp
 ffmpeg-python
+
+# MiniCPM-o 4.5 (trust_remote_code) needs these at import time
+transformers>=4.51.0
+accelerate
+huggingface-hub
+pillow
+librosa
+minicpmo-utils[all]>=1.0.5
+
+# librosa imports pkg_resources, which setuptools>=81 no longer ships
+setuptools<81
