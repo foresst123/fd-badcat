@@ -11,6 +11,14 @@ import numpy as np
 import soundfile as sf
 
 
+DEFAULT_MODEL_DIR = (
+    Path(__file__).resolve().parents[2]
+    / "models"
+    / "zipformer-30m-rnnt-streaming-6000h"
+)
+DEFAULT_REPO_ID = "hynt/Zipformer-30M-RNNT-Streaming-6000h"
+
+
 class ZipformerProvider:
     provider_name = "zipformer"
     sample_rate = 16_000
@@ -68,11 +76,10 @@ class ZipformerProvider:
         return cls(
             env.get(
                 "ASR_MODEL_DIR",
-                "/kaggle/working/models/zipformer-30m-rnnt-streaming-6000h",
+                str(DEFAULT_MODEL_DIR),
             ),
             repo_id=env.get(
-                "ASR_REPO_ID",
-                "hynt/Zipformer-30M-RNNT-Streaming-6000h",
+                "ASR_REPO_ID", DEFAULT_REPO_ID
             ),
             chunk_size=int(env.get("ASR_CHUNK_SIZE", "32")),
             left_context=int(env.get("ASR_LEFT_CONTEXT", "128")),

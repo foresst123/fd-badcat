@@ -236,6 +236,16 @@ class _FakeSherpaRecognizer:
 
 
 class ZipformerStreamingTests(unittest.TestCase):
+    def test_default_model_directory_is_repo_local_not_kaggle(self):
+        provider = ZipformerProvider.from_env({})
+
+        self.assertNotIn("/kaggle/", str(provider.model_dir))
+        self.assertTrue(
+            str(provider.model_dir).endswith(
+                "models/zipformer-30m-rnnt-streaming-6000h"
+            )
+        )
+
     def test_one_persistent_stream_accepts_multiple_frames_then_finalizes(self):
         provider = ZipformerProvider(
             "/tmp/not-used", provider="cpu", tail_padding_ms=0

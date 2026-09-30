@@ -68,7 +68,7 @@ def get_runtime() -> ModelRuntime:
         runtime = _runtime
     if runtime is None:
         raise RuntimeError(
-            "Model runtime chưa được cấu hình. Trên Kaggle, hãy gọi "
+            "Model runtime chưa được cấu hình. Hãy gọi "
             "model_swap.configure_model_swap(minicpm, tokenizer) trước khi "
             "khởi động backend."
         )

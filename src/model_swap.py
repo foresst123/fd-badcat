@@ -1,4 +1,4 @@
-"""Kaggle bootstrap for FD-BADCAT model-swap experiments."""
+"""Runtime bootstrap for FD-BADCAT model-swap experiments."""
 
 from __future__ import annotations
 

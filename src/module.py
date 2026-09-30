@@ -2,7 +2,7 @@
 
 The original ``asr``, ``llm_qwen3o`` and ``tts`` signatures stay unchanged.
 The streaming experiment adds ``llm_qwen3o_stream`` and ``tts_stream`` while
-the concrete model implementations remain configured by the Kaggle
+the concrete model implementations remain configured by the runtime
 bootstrap.
 """
 
