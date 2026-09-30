@@ -1,3 +1,12 @@
+# fd-badcat runtime dependencies (A100 branch).
+#
+# NOT listed here on purpose - install them first, matching your CUDA driver
+# (see README "A100 + Vi-FDB benchmark" step 1):
+#   torch, torchaudio   -> driver 12.2 (nvidia-smi "CUDA Version: 12.2"): cu121 build, torch 2.5.1
+#   sherpa-onnx         -> CUDA build (the plain PyPI wheel is CPU-only)
+#
+# Then: pip install -r requirements.txt
+
 numpy
 pyyaml
 tqdm
@@ -5,12 +14,19 @@ requests
 uvicorn
 fastapi
 soundfile
-torchaudio
-torch
 silero-vad
 websockets
-sherpa-onnx
 modelscope
-transformers
 aiohttp
 ffmpeg-python
+
+# MiniCPM-o 4.5 (trust_remote_code) needs these at import time
+transformers>=4.51.0
+accelerate
+huggingface-hub
+pillow
+librosa
+minicpmo-utils[all]>=1.0.5
+
+# librosa imports pkg_resources, which setuptools>=81 no longer ships
+setuptools<81
